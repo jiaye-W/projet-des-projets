@@ -41,6 +41,7 @@ projects_group_based = {"ARG": (3, 2), "CAG": (4, 2), "TN": (3, 1),
                         "CSQI": (4, 2), "MCSS": (5, 2),
                         "PROB": (4, 1), "PROPDE": (3, 2), 
                         "BIOSTAT": (3, 1), "SMAT": (4, 2)}
+number_of_projects_group_based = sum(value[0] for value in projects_group_based.values())
 
 """Project-based projects
 
@@ -51,25 +52,61 @@ projects_group_based = {"ARG": (3, 2), "CAG": (4, 2), "TN": (3, 1),
     - mandatory capacity
     - bachelor obligation
 """
-projects_project_based = {"EGG": [(1, "proj1-EGG", "bachelor"), (2, "proj2-EGG", "master")],
-                          }
+projects_project_based = {"EGG": [(1, "proj1-EGG", "bachelor"), (2, "proj2-EGG", "master")], 
+                          "ERG": [(1, "proj1-ERG", "master"), (2, "proj2-ERG", "master"), (3, "proj3-ERG", "bachelor"), (4, "proj4-ERG", "master")]}
+number_of_projects_project_based = sum(len(value) for value in projects_project_based.values())
+
+number_of_projects = number_of_projects_group_based + number_of_projects_project_based
 
 ##TODO: do you want a mixed of those two types?
 
 # Generated students
-students = {}
 number_of_students = 50
 
-
 # generate two things: bachelor/master and research interest
-def rng_degree():
-    return 
+def generate_students(count):
+    """_summary_
 
-def generate_students():
-    number_of_students = 50
-    number_of_projects = 100
-    random.choice()
+    Args:
+        count (_type_): _description_
 
-def generate_supervisors():
-    return 0
+    Returns:
+        _type_: _description_
+    """
 
+    students = {}
+
+    # Set-up of RNG
+    seed_value = 42
+    random.seed(seed_value)
+
+    for i in range(1, count+1):
+        degree = generate_degree_of_student(random, probability_of_master=0.7)
+        research_interest = random.choice(research_areas)
+        students[i] = (degree, research_interest)
+
+    #print(students)
+    return students
+
+
+def generate_degree_of_student(random, probability_of_master):
+    """A biased coin which generates the degree of student, either bachelor or master
+
+    Args:
+        random (_type_): _description_
+        probability_of_master (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    # Generate a random float in the range [0.0, 1.0)
+    random_value = random.random()
+
+    # Check if the random value is less than the probability_of_heads
+    if random_value < probability_of_master:
+        return "master"
+    else:
+        return "bachelor"
+
+if __name__ == "__main__":
+    generate_students(number_of_students)
