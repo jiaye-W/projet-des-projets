@@ -18,10 +18,9 @@ sma = {"Algebra and Number Theory": ["ARG", "CAG", "EGG", "ERG", "GR-TES", "TAN"
 #Remark: We only consider the chairs at SMA so far. 
 #TODO: maybe implement a relation matrix between research areas?? (incidence matrix)
 
-research_areas = list(sma.keys())
-
-chairs = list(set(value for values_list in sma.values() for value in values_list))
+# keys (list, sorted): research_areas
+research_areas = sorted(sma.keys())
+# set of all values (sorted): chairs
+chairs = sorted(set(value for values_list in sma.values() for value in values_list))
 
 number_of_chairs = len(chairs) #equals to 34
-
-#print(number_of_chairs) 
