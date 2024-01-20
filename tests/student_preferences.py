@@ -1,14 +1,22 @@
-from project_supervisors import project_supervisors
-from tests.data.students import students
+import random
 
-# from project_supervisors, get the list of projects
-projects = list(project_supervisors.keys())
+def build_student_preferences(students, project_supervisors, seed_value):
+    random.seed(seed_value)
+    student_preferences = {}
 
-def generate_student_prefs(index):
-    # get information of student of index
-    (degree, selected_chairs) = students[index]
+    for i in students:
+        (degree, selected_chairs) = students[i]
 
-    # 
+        # from the selected_chairs, randomly choose projects which are acceptable
+        accpetable_projects = [proj for proj, sup in project_supervisors.items() 
+                               if sup in selected_chairs]
+        
+        accpetable_projects = [proj for proj in accpetable_projects 
+                               if degree in proj]
+        #print(accpetable_projects)
 
+        number_of_projects_to_choose = random.randint(2, len(accpetable_projects))
+        selected_projects = sorted(random.sample(accpetable_projects, number_of_projects_to_choose))
+        student_preferences[i] = selected_projects
 
-generate_student_prefs(1)
+    return student_preferences
