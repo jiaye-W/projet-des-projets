@@ -7,7 +7,12 @@ Created on: 13.01.2024
 """
 
 import random
-from sma import *
+from data.sma import *
+
+def get_number_of_master_students(students):
+    number_of_students = len(students)
+    number_of_master_students = sum(1 for i in range(1, number_of_students+1) if students[i][0] == "master")
+    return number_of_master_students
 
 def generate_students(seed_value, count):
     """Generate two things: bachelor/master and research interest
@@ -55,7 +60,4 @@ def generate_degree_of_student(random, probability_of_master):
         return "master"
     else:
         return "bachelor"
-
-
-#students = generate_students(seed_value=42, number_of_students=50)
     
