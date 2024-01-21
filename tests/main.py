@@ -23,7 +23,8 @@ students (dict)
     key: index/numbering of student
     value: (degree, selected_chairs)
 """
-students = generate_students(seed_value=42, count=60)
+number_of_students = 50
+students = generate_students(seed_value=42, count=number_of_students)
 
 #print(students)
 #print(get_number_of_master_students(students))
@@ -37,7 +38,7 @@ data_project_based (dict)
     key: name of the chair
     value: a list of projects
 """
-data_group_based, data_project_based = generate_projects_data(seed_value=42)
+data_group_based, data_project_based = generate_projects_data(seed_value=1)
 
 #print(get_number_of_projects_group_based(data_group_based))
 #print(data_group_based)
