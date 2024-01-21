@@ -109,7 +109,7 @@ supervisor_preferences = build_supervisor_preferences(student_preferences, super
 #print(CustomDictPrinter(supervisor_preferences))
 
 
-"""Matching algorithm"""
+"""Apply matching algorithm"""
 game = StudentAllocation.create_from_dictionaries(
     student_preferences,
     supervisor_preferences,
@@ -119,4 +119,23 @@ game = StudentAllocation.create_from_dictionaries(
 
 matching = student_allocation(game.students, game.projects, game.supervisors)
 
-print(CustomDictPrinter(matching))
+"""Extract information of the matching results"""
+# Get the number of students being matched
+students_matched = set()
+for studs in matching.values():
+    students_matched.update(studs)
+students_matched = list(students_matched)
+
+#matching_edges = [(stud, str(proj)) for proj, students_matched in matching.items() for stud in students_matched]
+
+print(f'\nThere are {len(students_matched)} students got matched, out of {number_of_students}\n')
+
+"""Print out matching results"""
+print('The student-project correspondence: ')
+matching_stud_proj = {stud: proj for proj, studs in matching.items() for stud in studs}
+print(CustomDictPrinter(matching_stud_proj))
+print('\n')
+
+print('The project-students correspondence: ')
+matching_proj_studs = {proj: studs for proj, studs in matching.items() if studs}
+print(CustomDictPrinter(matching_proj_studs))
