@@ -5,7 +5,7 @@ def build_student_preferences(students, project_supervisors, seed_value):
     student_preferences = {}
 
     for i in students:
-        (degree, selected_chairs) = students[i]
+        (degree, research_interest, selected_chairs) = students[i]
 
         # from the selected_chairs, randomly choose projects which are acceptable
         accpetable_projects = [proj for proj, sup in project_supervisors.items() 
