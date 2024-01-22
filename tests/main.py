@@ -2,6 +2,7 @@ from data.sma import number_of_chairs
 
 from data.students import generate_students
 from data.students import get_number_of_master_students
+from data.students import get_research_interest_counts
 
 from data.projects import generate_projects_data
 from data.projects import number_of_chairs_group_based
@@ -47,6 +48,8 @@ def build_matching_example():
     number_of_master_students = get_number_of_master_students(students)
     number_of_bachelor_students = number_of_students - number_of_master_students
 
+    research_interest_counts = get_research_interest_counts(students)
+
     # Generate projects
     
     ## data_group_based (dict)
@@ -60,9 +63,15 @@ def build_matching_example():
     #print(get_number_of_projects_group_based(data_group_based))
 
     with open('tests/results/example.txt', 'w') as file:
+        # students
         print(f'Generate {number_of_students} students.', file=file)
         print(f'There are {number_of_master_students} master students, {number_of_bachelor_students} bachelor students.', file=file)
         print(CustomDictPrinter(students), file=file)
+
+        print('\nThe research interests of students: ', file=file)
+        print(CustomDictPrinter(research_interest_counts), file=file)
+
+        # projects
         print(f'\nThere are {number_of_chairs} chairs in SMA participating in the matching.', file=file)
         print(f'{number_of_chairs_group_based} of them choose to advertise in group-based and {number_of_chairs - number_of_chairs_group_based} of them choose to advertise in project-based.', file=file)
 
