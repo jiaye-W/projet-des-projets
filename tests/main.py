@@ -28,24 +28,26 @@ def find_keys_by_value(data_dict, search_string):
         return matching_keys
 
 def build_matching_example():
-    # Get user input as a string
+    # Set random seed
     user_input_str = input("Please enter the seed: ")
-
-    # Convert the string to an integer
     try:
         seed = int(user_input_str)
     except ValueError:
         print("Invalid input. Please enter a valid integer.")
 
-    """
-    students (dict)
-        key: index/numbering of student
-        value: (degree, selected_chairs)
-    """
-    number_of_students = 50
-    students = generate_students(seed_value=seed, count=number_of_students)
+    # Set the number of students
+    user_input_number_of_students = input("Please enter the number of students you want to generate: ")
+    try:
+        number_of_students = int(user_input_number_of_students)
+    except ValueError:
+        print("Invalid input. Please enter a valid integer.")
 
-    #print(students)
+    # Generate students
+    students = generate_students(seed_value=seed, count=number_of_students)
+    
+    with open('tests/results/example.txt', 'w') as file:
+        print(CustomDictPrinter(students), file=file)
+
     #print(get_number_of_master_students(students))
 
     """
@@ -132,7 +134,7 @@ def apply_matching_algorithm(student_preferences,
 
     number_of_students = len(student_preferences.keys())
 
-    with open('tests/results/output.txt', 'w') as file:
+    with open('tests/results/solution.txt', 'w') as file:
     # Redirect the output to the file
         print(f'There are {len(students_matched)} students got matched, out of {number_of_students}\n', file=file)
 
