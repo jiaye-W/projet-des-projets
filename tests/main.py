@@ -1,10 +1,10 @@
-import random
+from data.sma import number_of_chairs
 
 from data.students import generate_students
 from data.students import get_number_of_master_students
 
 from data.projects import generate_projects_data
-from data.projects import get_number_of_projects_group_based
+from data.projects import number_of_chairs_group_based
 from data.projects import get_project_supervisors_group_based
 from data.projects import get_project_supervisors_project_based
 from data.projects import get_project_capacities_group_based
@@ -44,26 +44,28 @@ def build_matching_example():
 
     # Generate students
     students = generate_students(seed_value=seed, count=number_of_students)
+    number_of_master_students = get_number_of_master_students(students)
+    number_of_bachelor_students = number_of_students - number_of_master_students
+
+    # Generate projects
     
-    with open('tests/results/example.txt', 'w') as file:
-        print(CustomDictPrinter(students), file=file)
+    ## data_group_based (dict)
+    ### key: name of the chair
+    ### value: a tuple (number_of_projects, number_of_projects_master)
 
-    #print(get_number_of_master_students(students))
-
-    """
-    data_group_based (dict)
-        key: name of the chair
-        value: a tuple (number_of_projects, number_of_projects_master)
-
-    data_project_based (dict)
-        key: name of the chair
-        value: a list of projects
-    """
+    ## data_project_based (dict)
+    ### key: name of the chair
+    ### value: a list of projects
     data_group_based, data_project_based = generate_projects_data(seed_value=seed)
-
     #print(get_number_of_projects_group_based(data_group_based))
-    #print(data_group_based)
-    #print(data_project_based)
+
+    with open('tests/results/example.txt', 'w') as file:
+        print(f'Generate {number_of_students} students.', file=file)
+        print(f'There are {number_of_master_students} master students, {number_of_bachelor_students} bachelor students.', file=file)
+        print(CustomDictPrinter(students), file=file)
+        print(f'\nThere are {number_of_chairs} chairs in SMA participating in the matching.', file=file)
+        print(f'{number_of_chairs_group_based} of them choose to advertise in group-based and {number_of_chairs - number_of_chairs_group_based} of them choose to advertise in project-based.', file=file)
+
 
     """Build supervisor_capacities"""
     def build_supervisor_capacities(data_group_based, data_project_based):
