@@ -32,12 +32,13 @@ def generate_students(seed_value, count):
         degree = generate_degree_of_student(random, probability_of_master=0.7)
 
         # generate the research interest 
-        research_interest = random.choice(research_areas)
+        bias_weights = [0.1, 0.05, 0.4, 0.05, 0.05, 0.05, 0.25, 0.05] # biased list of weights
+        research_interest = random.choices(research_areas, weights=bias_weights)[0]
 
         # choose 2 chairs from each research areas
         selected_chairs = random.sample(sma[research_interest], 2)
 
-        students[i] = (degree, selected_chairs)
+        students[i] = (degree, research_interest, selected_chairs)
 
     #print(students)
     return students
@@ -60,4 +61,18 @@ def generate_degree_of_student(random, probability_of_master):
         return "master"
     else:
         return "bachelor"
-    
+
+
+def get_research_interest_counts(students):
+    research_interest_counts = {}
+
+    for index, information in students.items():
+        research_area = information[1]
+        if research_area in research_interest_counts:
+            research_interest_counts[research_area] += 1
+        else:
+            research_interest_counts[research_area] = 1
+
+    sorted_dict = {key: research_interest_counts[key] for key in research_areas if key in research_interest_counts}
+
+    return sorted_dict
