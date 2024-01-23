@@ -31,6 +31,13 @@ def find_keys_by_value(data_dict, search_string):
         matching_keys = [key for key, values in data_dict.items() if any(search_string in value for value in values)]
         return matching_keys
 
+def get_ordinal_suffix(number):
+    if 10 <= number % 100 <= 20:
+        suffix = 'th'
+    else:
+        suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(number % 10, 'th')
+    return suffix
+
 def build_matching_example():
     # Set random seed
     user_input_str = input("Please enter the seed: ")
@@ -166,12 +173,32 @@ def apply_matching_algorithm(student_preferences,
 
         """Print out matching results"""
         print('The student-project correspondence: ', file=file)
+        number_of_students_got_first_pick = 0
+        number_of_students_got_second_pick = 0
         matching_stud_proj = {stud: proj for proj, studs in matching.items() for stud in studs}
-        print(CustomDictPrinter(matching_stud_proj), file=file)
+        for stud in matching_stud_proj:
+            proj = matching_stud_proj[stud]
+            prefs_list = student_preferences[int(f'{stud}')]
+            which_pick = prefs_list.index(f'{proj}')+1
+
+            if which_pick == 1:
+                number_of_students_got_first_pick += 1
+            if which_pick == 2:
+                number_of_students_got_second_pick += 1
+
+            print(f'{stud} : {proj}, his/her {which_pick}{get_ordinal_suffix(which_pick)} choice', file=file)
+        
+        print(f'\nNumber of students got matched = {len(students_matched)}', file=file)
+        print(f'Number of students got matched to their 1st choice = {number_of_students_got_first_pick}', file=file)
+        print(f'Number of students got matched to their 2nd choice = {number_of_students_got_second_pick}', file=file)
+
+        file.write('\n' + '-' * 100 + '\n')
 
         print('\nThe project-students correspondence: ', file=file)
         matching_proj_studs = {proj: studs for proj, studs in matching.items() if studs}
         print(CustomDictPrinter(matching_proj_studs), file=file)
+
+        file.write('\n' + '-' * 100 + '\n')
 
         print('\nResults for each research area: ', file=file)
         for area in research_areas:
