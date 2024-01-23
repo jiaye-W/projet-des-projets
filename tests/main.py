@@ -96,7 +96,12 @@ def build_matching_example():
         print('Details: ', file=file)
         for chair in data_project_based:
             list_of_projects = data_project_based[chair]
-            print(f'{chair} has {len(list_of_projects)} projects', file=file)
+
+            number_of_projects = len(list_of_projects)
+            number_of_master_projects = sum("master" in proj for proj in list_of_projects)
+            number_of_bachelor_projects = number_of_projects - number_of_master_projects
+
+            print(f'{chair} has {number_of_projects} projects, {number_of_master_projects} for master and {number_of_bachelor_projects} for bachelor', file=file)
 
     """Build supervisor_capacities"""
     def build_supervisor_capacities(data_group_based, data_project_based):
