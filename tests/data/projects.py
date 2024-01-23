@@ -29,7 +29,7 @@ def generate_projects_data(seed_value):
     for chair in chairs_group_based:
         # generate the pair of numbers: (# of projects, # of projects for only masters)
         number_of_projects = random.randint(min_number_of_projects, max_number_of_projects) # depends on the capacity of chair but for now we don't have data
-        number_of_projects_master_only = random.randint(1, math.floor(number_of_projects * (1-bachelor_obligation)))
+        number_of_projects_master_only = random.randint(2, math.floor(number_of_projects * (1-bachelor_obligation)))
         data_group_based[chair] = (number_of_projects, number_of_projects_master_only)
 
     # project-based projects generation
@@ -37,7 +37,7 @@ def generate_projects_data(seed_value):
         # generate a list of projects
         list_of_projects = []
         number_of_projects = random.randint(min_number_of_projects, max_number_of_projects) # depends on the capacity of chair but for now we don't have data
-        number_of_projects_master_only = random.randint(1, math.floor(number_of_projects * (1-bachelor_obligation)))
+        number_of_projects_master_only = random.randint(2, math.floor(number_of_projects * (1-bachelor_obligation)))
 
         for i in range(1, number_of_projects+1):
             if i <= number_of_projects_master_only:
