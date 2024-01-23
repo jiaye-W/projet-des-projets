@@ -50,6 +50,14 @@ def build_matching_example():
 
     research_interest_counts = get_research_interest_counts(students)
 
+    with open('tests/results/texts/students.txt', 'w') as file:
+        print(f'Generate {number_of_students} students.', file=file)
+        print(f'There are {number_of_master_students} master students, {number_of_bachelor_students} bachelor students.', file=file)
+        print(CustomDictPrinter(students), file=file)
+
+        print('\nThe research interests of students: ', file=file)
+        print(CustomDictPrinter(research_interest_counts), file=file)
+
     # Generate projects
     
     ## data_group_based (dict)
@@ -62,19 +70,23 @@ def build_matching_example():
     data_group_based, data_project_based = generate_projects_data(seed_value=seed)
     #print(get_number_of_projects_group_based(data_group_based))
 
-    with open('tests/results/example.txt', 'w') as file:
-        # students
-        print(f'Generate {number_of_students} students.', file=file)
-        print(f'There are {number_of_master_students} master students, {number_of_bachelor_students} bachelor students.', file=file)
-        print(CustomDictPrinter(students), file=file)
-
-        print('\nThe research interests of students: ', file=file)
-        print(CustomDictPrinter(research_interest_counts), file=file)
-
-        # projects
-        print(f'\nThere are {number_of_chairs} chairs in SMA participating in the matching.', file=file)
+    with open('tests/results/texts/projects.txt', 'w') as file:
+        print(f'There are {number_of_chairs} chairs in SMA participating in the matching.', file=file)
         print(f'{number_of_chairs_group_based} of them choose to advertise in group-based and {number_of_chairs - number_of_chairs_group_based} of them choose to advertise in project-based.', file=file)
-
+        
+        print('\nThe group-based chairs are:', file=file)
+        print(sorted(data_group_based.keys()), file=file)
+        print('Details: ', file=file)
+        for chair in data_group_based:
+            pair = data_group_based[chair]
+            print(f'{chair} has {pair[0]} projects, {pair[1]} for master and {pair[0]-pair[1]} for bachelor', file=file)
+        
+        print('\nThe project-based chairs are:', file=file)
+        print(sorted(data_project_based.keys()), file=file)
+        print('Details: ', file=file)
+        for chair in data_project_based:
+            list_of_projects = data_project_based[chair]
+            print(f'{chair} has {len(list_of_projects)} projects', file=file)
 
     """Build supervisor_capacities"""
     def build_supervisor_capacities(data_group_based, data_project_based):
@@ -145,7 +157,7 @@ def apply_matching_algorithm(student_preferences,
 
     number_of_students = len(student_preferences.keys())
 
-    with open('tests/results/solution.txt', 'w') as file:
+    with open('tests/results/texts/solution.txt', 'w') as file:
     # Redirect the output to the file
         print(f'There are {len(students_matched)} students got matched, out of {number_of_students}\n', file=file)
 
