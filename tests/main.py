@@ -1,4 +1,6 @@
+from data.sma import sma
 from data.sma import number_of_chairs
+from data.sma import research_areas
 
 from data.students import generate_students
 from data.students import get_number_of_master_students
@@ -13,6 +15,7 @@ from data.projects import get_project_capacities_group_based
 from student_preferences import build_student_preferences
 
 from supervisor_preferences import build_supervisor_preferences
+from supervisor_preferences import get_part_before_parenthesis
 
 from plot import plot_example
 from plot import plot_results
@@ -169,6 +172,23 @@ def apply_matching_algorithm(student_preferences,
         print('\nThe project-students correspondence: ', file=file)
         matching_proj_studs = {proj: studs for proj, studs in matching.items() if studs}
         print(CustomDictPrinter(matching_proj_studs), file=file)
+
+        print('\nResults for each research area: ', file=file)
+        for area in research_areas:
+            sum_all_students = 0
+            sum_total_capacities = 0
+
+            print(f'{area}: ', file=file)
+            for chair in sma[area]:
+                students_matched_to_chair = [stud 
+                                             for proj, studs in matching_proj_studs.items() 
+                                             for stud in studs 
+                                             if chair == get_part_before_parenthesis(f'{proj}')]
+                print(f'{chair}: {students_matched_to_chair}, {len(students_matched_to_chair)}/{supervisor_capacities[chair]}', file=file)
+                sum_all_students += len(students_matched_to_chair)
+                sum_total_capacities += supervisor_capacities[chair]
+
+            print(f'All matched students/total capacities = {sum_all_students}/{sum_total_capacities}\n', file=file)
 
         # plot the matching results
         plot_results(number_of_students, project_supervisors, student_preferences, matching)
