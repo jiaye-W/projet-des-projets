@@ -80,29 +80,6 @@ def build_matching_example():
     data_group_based, data_project_based = generate_projects_data(seed_value=seed)
     #print(get_number_of_projects_group_based(data_group_based))
 
-    with open('tests/results/texts/projects.txt', 'w') as file:
-        print(f'There are {number_of_chairs} chairs in SMA participating in the matching.', file=file)
-        print(f'{number_of_chairs_group_based} of them choose to advertise in group-based and {number_of_chairs - number_of_chairs_group_based} of them choose to advertise in project-based.', file=file)
-        
-        print('\nThe group-based chairs are:', file=file)
-        print(sorted(data_group_based.keys()), file=file)
-        print('Details: ', file=file)
-        for chair in data_group_based:
-            pair = data_group_based[chair]
-            print(f'{chair} has {pair[0]} projects, {pair[1]} for master and {pair[0]-pair[1]} for bachelor', file=file)
-        
-        print('\nThe project-based chairs are:', file=file)
-        print(sorted(data_project_based.keys()), file=file)
-        print('Details: ', file=file)
-        for chair in data_project_based:
-            list_of_projects = data_project_based[chair]
-
-            number_of_projects = len(list_of_projects)
-            number_of_master_projects = sum("master" in proj for proj in list_of_projects)
-            number_of_bachelor_projects = number_of_projects - number_of_master_projects
-
-            print(f'{chair} has {number_of_projects} projects, {number_of_master_projects} for master and {number_of_bachelor_projects} for bachelor', file=file)
-
     """Build supervisor_capacities"""
     def build_supervisor_capacities(data_group_based, data_project_based):
         supervisor_capacities = {}
@@ -140,6 +117,52 @@ def build_matching_example():
     """Build supervisor_preferences"""
     supervisor_preferences = build_supervisor_preferences(student_preferences, supervisor_capacities, seed_value=seed)
     #print(CustomDictPrinter(supervisor_preferences))
+
+    with open('tests/results/texts/projects.txt', 'w') as file:
+        print(f'There are {number_of_chairs} chairs in SMA participating in the matching.', file=file)
+        print(f'{number_of_chairs_group_based} of them choose to advertise in group-based and {number_of_chairs - number_of_chairs_group_based} of them choose to advertise in project-based.', file=file)
+        
+        file.write('\n' + '-' * 100 + '\n')
+
+        print('\nThe group-based chairs are:', file=file)
+        print(sorted(data_group_based.keys()), file=file)
+        print('Details: ', file=file)
+        for chair in data_group_based:
+            pair = data_group_based[chair]
+            print(f'{chair} has {pair[0]} projects, {pair[1]} for master and {pair[0]-pair[1]} for bachelor', file=file)
+        
+        file.write('\n' + '-' * 100 + '\n')
+
+        print('\nThe project-based chairs are:', file=file)
+        print(sorted(data_project_based.keys()), file=file)
+        print('Details: ', file=file)
+        for chair in data_project_based:
+            list_of_projects = data_project_based[chair]
+
+            number_of_projects = len(list_of_projects)
+            number_of_master_projects = sum("master" in proj for proj in list_of_projects)
+            number_of_bachelor_projects = number_of_projects - number_of_master_projects
+
+            print(f'{chair} has {number_of_projects} projects, {number_of_master_projects} for master and {number_of_bachelor_projects} for bachelor', file=file)
+
+        file.write('\n' + '-' * 100 + '\n')
+
+        print("\nThe supervisor' preferences (preferences list, applications/capacities): \n", file=file)
+        for area in research_areas:
+            print(f'{area}: ', file=file)
+
+            no_applicants = 0
+            for chair in sma[area]:
+                prefs = supervisor_preferences[chair]
+
+                if len(prefs) == 0:
+                    no_applicants += 1
+                
+                capacity = supervisor_capacities[chair]
+                
+                file.write(f'{chair}: {prefs}, {len(prefs)}/{capacity} \n')
+            print(f'Out of {len(sma[area])} chairs in {area}, {no_applicants} receive no applications. \n', file=file)
+
 
     """Plot the matching instance"""
     plot_example(seed, number_of_students, project_supervisors, student_preferences)
