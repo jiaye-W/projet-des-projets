@@ -60,14 +60,6 @@ def build_matching_example():
 
     research_interest_counts = get_research_interest_counts(students)
 
-    with open('tests/results/texts/students.txt', 'w') as file:
-        print(f'Generate {number_of_students} students.', file=file)
-        print(f'There are {number_of_master_students} master students, {number_of_bachelor_students} bachelor students.', file=file)
-        print(CustomDictPrinter(students), file=file)
-
-        print('\nThe research interests of students: ', file=file)
-        print(CustomDictPrinter(research_interest_counts), file=file)
-
     # Generate projects
     
     ## data_group_based (dict)
@@ -111,8 +103,17 @@ def build_matching_example():
 
     """Build student_preferences"""
     student_preferences = build_student_preferences(students, project_supervisors, seed_value=seed)
-    student_preferences_printed = CustomDictPrinter(student_preferences)
-    #print(student_preferences_printed)
+
+    with open('tests/results/texts/students.txt', 'w') as file:
+        print(f'Generate {number_of_students} students.', file=file)
+        print(f'There are {number_of_master_students} master students, {number_of_bachelor_students} bachelor students.', file=file)
+        print(CustomDictPrinter(students), file=file)
+
+        print('\nThe research interests of students: ', file=file)
+        print(CustomDictPrinter(research_interest_counts), file=file)
+
+        print("\nStudents' preferences: ", file=file)
+        print(CustomDictPrinter(student_preferences), file=file)
 
     """Build supervisor_preferences"""
     supervisor_preferences = build_supervisor_preferences(student_preferences, supervisor_capacities, seed_value=seed)
@@ -186,21 +187,25 @@ def apply_matching_algorithm(student_preferences,
 
     """Extract information of the matching results"""
     # Get the number of students being matched
+    number_of_students = len(student_preferences.keys())
+
     students_matched = set()
     for studs in matching.values():
         students_matched.update(studs)
+
+    students_unmatched = set(game.students).difference(students_matched)
+    students_unmatched = list(students_unmatched)
     students_matched = list(students_matched)
 
     #matching_edges = [(stud, str(proj)) for proj, students_matched in matching.items() for stud in students_matched]
 
-    number_of_students = len(student_preferences.keys())
-
     with open('tests/results/texts/solution.txt', 'w') as file:
     # Redirect the output to the file
         print(f'There are {len(students_matched)} students got matched, out of {number_of_students}\n', file=file)
+        print(f'Unmatched student(s): {", ".join(map(str, students_unmatched))}', file=file)
 
         """Print out matching results"""
-        print('The student-project correspondence: ', file=file)
+        print('\nThe student-project correspondence: ', file=file)
         number_of_students_got_first_pick = 0
         number_of_students_got_second_pick = 0
         matching_stud_proj = {stud: proj for proj, studs in matching.items() for stud in studs}
