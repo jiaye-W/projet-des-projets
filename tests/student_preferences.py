@@ -16,7 +16,9 @@ def build_student_preferences(students, project_supervisors, seed_value):
         #print(accpetable_projects)
 
         number_of_projects_to_choose = random.randint(2, len(accpetable_projects))
-        selected_projects = sorted(random.sample(accpetable_projects, number_of_projects_to_choose))
+        selected_projects = random.sample(accpetable_projects, number_of_projects_to_choose)
+        random.shuffle(selected_projects)
+
         student_preferences[i] = selected_projects
 
     return student_preferences
