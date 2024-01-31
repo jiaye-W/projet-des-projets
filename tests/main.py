@@ -28,8 +28,8 @@ class CustomDictPrinter(dict):
         return '\n'.join([f'{key}: {value}' for key, value in self.items()])
 
 def find_keys_by_value(data_dict, search_string):
-        matching_keys = [key for key, values in data_dict.items() if any(search_string in value for value in values)]
-        return matching_keys
+    matching_keys = [key for key, values in data_dict.items() if any(search_string in value for value in values)]
+    return matching_keys
 
 def get_ordinal_suffix(number):
     if 10 <= number % 100 <= 20:
@@ -202,7 +202,10 @@ def apply_matching_algorithm(student_preferences,
     with open('tests/results/texts/solution.txt', 'w') as file:
     # Redirect the output to the file
         print(f'There are {len(students_matched)} students got matched, out of {number_of_students}\n', file=file)
-        print(f'Unmatched student(s): {", ".join(map(str, students_unmatched))}', file=file)
+
+        print(f'Unmatched student(s): {", ".join(map(str, students_unmatched))}' if students_unmatched
+              else 'Every students are matched!', 
+              file=file)
 
         """Print out matching results"""
         print('\nThe student-project correspondence: ', file=file)
@@ -221,9 +224,9 @@ def apply_matching_algorithm(student_preferences,
 
             print(f'{stud} : {proj}, his/her {which_pick}{get_ordinal_suffix(which_pick)} choice', file=file)
         
-        print(f'\nNumber of students got matched = {len(students_matched)}', file=file)
-        print(f'Number of students got matched to their 1st choice = {number_of_students_got_first_pick}', file=file)
-        print(f'Number of students got matched to their 2nd choice = {number_of_students_got_second_pick}', file=file)
+        print(f'\nNumber of students got matched = {len(students_matched)} ({round(len(students_matched) * 100 / number_of_students, 2)}%)', file=file)
+        print(f'Number of students got matched to their 1st choice = {number_of_students_got_first_pick} ({round(number_of_students_got_first_pick * 100 / number_of_students, 2)}%)', file=file)
+        print(f'Number of students got matched to their 2nd choice = {number_of_students_got_second_pick} ({round(number_of_students_got_second_pick * 100 / number_of_students, 2)}%)', file=file)
 
         file.write('\n' + '-' * 100 + '\n')
 
