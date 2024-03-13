@@ -46,6 +46,16 @@ for index, row in df.iterrows():
 
         projects = []
         
+        for index in range(0, 8):
+            start_col = 30 - index * 3
+
+            target_students = row.iloc[start_col]
+            if pd.notna(target_students):
+                description = row.iloc[start_col - 1]
+                title = row.iloc[start_col - 2]
+
+                projects.append(Project(title, description, target_students))
+
         supervisor = SupervisorProjectBased(name, is_chair, num_projects, courses, projects)
 
     else:
@@ -55,8 +65,9 @@ for index, row in df.iterrows():
 
     list_supervisors.append(supervisor)
 
-print(list_supervisors)
-
+for sup in list_supervisors:
+    print(sup)
+    print()
 
 
     
