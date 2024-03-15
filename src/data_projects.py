@@ -69,5 +69,34 @@ for sup in list_supervisors:
     print(sup)
     print()
 
+with open('supervisor_form_1.txt', 'w') as file:
+    file.write('-' * 200 + '\n')
+    sup_index = 1
 
-    
+    for sup in list_supervisors:
+        sup_type = 'project-based' if isinstance(sup, SupervisorProjectBased) else 'group-based'
+        file.write('\n')
+        file.write(f'{sup_index}. {sup.name} ({sup_type})' + '\n')
+        sup_index += 1
+
+        file.write('\n')
+        file.write(f'There are {sup.num_projects} many projects.' + '\n')
+
+        if sup_type == 'project-based':
+            file.write('\n')
+            proj_index = 1
+            for proj in sup.projects:
+                file.write('\t' + f'Project {proj_index} ({proj.target_students})' + '\n')
+                file.write('\t' + f'Title: {proj.title}' + '\n')
+                file.write('\t' + f'Description: {proj.description}' + '\n')
+                file.write('\n')
+                proj_index += 1
+
+        else:
+            file.write(f'{sup.num_master_projects} projects for master students, {sup.num_projects - sup.num_master_projects} projects for bachelor students.')
+            file.write('\n' + '\n')
+
+        file.write(f'Required courses: {sup.courses if sup.courses else None}' + '\n')
+        file.write('\n')
+
+        file.write('-' * 100 + '\n')
