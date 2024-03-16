@@ -1,9 +1,3 @@
-/*
-This file is the App Script extension of Supervisor-1 (Responses).
-Only for storage and version contorl. 
-No need to execute it here. 
-*/
-
 function readDataFromResponses(url){
     var response = UrlFetchApp.fetch(url);
     var csv_content = response.getContentText();
@@ -29,6 +23,17 @@ function readDataFromResponses(url){
       if (row[4] === "project-based") {
         var num_projects = parseInt(row[6]);
         var projects = [];
+        for (var index = 0; index < 8; index++) {
+          var start_col = 30 - index * 3;
+          
+          var target_students = row[start_col - 1];
+          if (target_students != "" && target_students != null) {
+            var description = row[start_col - 1 - 1];
+            var title = row[start_col - 2 - 1];
+            
+            projects.push(new Project(title, description, target_students)); // Assuming Project is a class defined elsewhere
+          }
+        }
         supervisor = new SupervisorProjectBased(name, is_chair, num_projects, courses, projects);
       } 
       else {
@@ -38,33 +43,46 @@ function readDataFromResponses(url){
       }
   
       list_supervisors.push(supervisor);
-  
-      return list_supervisors
     }
+  
+    return list_supervisors; // Move return outside the loop
   }
   
+  // DO it 5 times
   function createSupervisorSelectionQuestion(list_supervisors) {
-    // Assuming list_supervisors is defined and populated in the previous code snippet
+    // Setup
     var formId = '1BUrjIpvwT5SQzEAW61qhBTDr0XL5RP1DTRp-kkEjaEo'
     var form = FormApp.openById(formId);
   
     // Add a multiple-choice question
+    var section_item = form.addPageBreakItem()
+    section_item.setTitle('Choosing the 1st project');
+  
     var item = form.addMultipleChoiceItem();
     item.setTitle('Please select your preferred supervisor for your project:')
       .setRequired(true);
   
-    // Populate options from the list_supervisors array
-    for (var i = 0; i < list_supervisors.length; i++) {
-      var supervisorName = list_supervisors[i].name;
-      item.createChoice(supervisorName);
+    // Extract supervisor names into an array
+    var supervisorNames = list_supervisors.map(function(supervisor) {
+      return supervisor.name.toString(); 
+    });
+  
+    var choices = [];
+    for (var i = 0; i < supervisorNames.length; i++)
+    {
+      var sup = supervisorNames[i];
+      var page = form.addPageBreakItem().setTitle(sup);
+      var choice = item.createChoice(sup, page);
+      choices.push(choice);
     }
+    item.setChoices(choices);
   }
   
   function Project(title, description, target_students) {
       this.title = title;
       this.description = description;
       this.target_students = target_students;
-    }
+  }
   
   function Supervisor(name, is_chair, num_projects, courses) {
     this.name = name;
@@ -89,6 +107,8 @@ function readDataFromResponses(url){
   
   function main() {
     var url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT2TSn3joZFFrBeGShjgUHeTm5Zw1v3vPhxl53Wht0OVXDWAOtnZ_JbNrAgakmpJBOThZ00hUG5pyVV/pub?output=csv'
-    var csv_content = readDataFromResponses(url)
-    createSupervisorSelectionQuestion(csv_content)
+    var csv_content = readDataFromResponses(url);
+    var list_supervisors = processResponses(csv_content); // Call processResponses to get the list of supervisors
+    createSupervisorSelectionQuestion(list_supervisors);
   }
+  
