@@ -2,7 +2,7 @@ function readDataFromResponses(url)
 {
   var response = UrlFetchApp.fetch(url);
   var csv_content = response.getContentText();
-  return csv_content
+  return csv_content;
 }
 
 function processResponses(csv_content)
@@ -46,11 +46,12 @@ function processResponses(csv_content)
 
     list_supervisors.push(supervisor);
   }
-
+  
   return list_supervisors; // Move return outside the loop
 }
 
-function buildQuestions(form, list_supervisors, index) {
+function buildQuestions(form, list_supervisors, index) 
+{
   // Add 1st question: selecting supervisor
   var supervisorSelection = form.addMultipleChoiceItem();
   form.moveItem(supervisorSelection.getIndex(), index);
@@ -66,19 +67,23 @@ function buildQuestions(form, list_supervisors, index) {
   });
 
   var choices = [];
+  var pages = [];
   for (var i = 0; i < supervisorNames.length; i++)
   {
     var sup = supervisorNames[i];
+
     var page = form.addPageBreakItem().setTitle(sup);
+    pages.push(page);
+
     var choice = supervisorSelection.createChoice(sup, page);
     choices.push(choice);
   }
   supervisorSelection.setChoices(choices);
 
-  //TODO: Set go to page!!
-
   var count_proj_based = 0;
   var count_group_based = 0;
+  var count_course = 0; // Count the number of supervisors with courses requirements. 
+
   for (var i = 0; i < list_supervisors.length; i++)
   {
     var sup = list_supervisors[i];
@@ -90,13 +95,14 @@ function buildQuestions(form, list_supervisors, index) {
       var projectQuestion = form.addMultipleChoiceItem().setTitle('Please select a project:').setRequired(true);
       
       var projects = sup.projects;
-      var projectTitles = projects.map(function(project){
+      var projectTitles = projects.map(function(project)
+      {
         return project.title.toString();
       });
 
       projectQuestion.setChoiceValues(projectTitles);
 
-      form.moveItem(projectQuestion.getIndex(), index + count_proj_based* 2 + count_group_based);
+      form.moveItem(projectQuestion.getIndex(), index + count_proj_based * 3 - 1 + count_group_based * 2);
     }
     else
     {
@@ -104,9 +110,23 @@ function buildQuestions(form, list_supervisors, index) {
     }
 
     // Add question for required courses
-    //var courses = sup.courses;
-    //var coursesQuestion = form.addGridItem();
+    var courses = sup.courses;
+    var filteredCourses = courses.filter(function(course){ return !isNaN(course);});
+
+    if (filteredCourses.length !== 0)
+    {
+      count_course ++;
+
+      var coursesQuestion = form.addGridItem().setRequired(true);
+      coursesQuestion.setTitle('Please provide the grades of the following course(s): ')
+      .setRows(filteredCourses.map(element => "MATH-" + element))
+      .setColumns(['<4', '4', '4.25', '4.5', '4.75', '5', '5.25', '5.5', '5.75', '6']);
+
+      form.moveItem(coursesQuestion.getIndex(), index + count_proj_based * 3 + count_group_based * 2);
+    }
   }
+
+  return pages;
 }
 
 function Project(title, description, target_students) {
@@ -142,7 +162,7 @@ function main()
   deleteEverything();
 
   // Get the data from supervisors-form-1
-  var url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT2TSn3joZFFrBeGShjgUHeTm5Zw1v3vPhxl53Wht0OVXDWAOtnZ_JbNrAgakmpJBOThZ00hUG5pyVV/pub?output=csv'
+  var url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT2TSn3joZFFrBeGShjgUHeTm5Zw1v3vPhxl53Wht0OVXDWAOtnZ_JbNrAgakmpJBOThZ00hUG5pyVV/pub?output=csv';
   var csv_content = readDataFromResponses(url);
   var list_supervisors = processResponses(csv_content);
 
@@ -151,16 +171,15 @@ function main()
 
   // Add sections for asking for different questions
   var sectionProjectOne = form.addPageBreakItem().setTitle("Your 1st choice");
+  pagesOne = buildQuestions(form, list_supervisors, 1);
 
-  /*
   var sectionProjectTwo = form.addPageBreakItem().setTitle("Your 2nd choice");
+  pagesOne.map(function(page){ page.setGoToPage(sectionProjectTwo); });
+
+  pagesTwo = buildQuestions(form, list_supervisors, form.getItems().length); // start index is the total number of projects
+
   var sectionProjectThree = form.addPageBreakItem().setTitle("Your 3rd choice");
-  var sectionProjectFour = form.addPageBreakItem().setTitle("Your 4th choice");
-  var sectionProjectFive = form.addPageBreakItem().setTitle("Your 5th choice");
-  */
-
-  buildQuestions(form, list_supervisors, 1);
-
+  pagesTwo.map(function(page){ page.setGoToPage(sectionProjectThree); });
 }
 
 function deleteEverything()
