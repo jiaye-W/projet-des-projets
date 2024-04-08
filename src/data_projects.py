@@ -15,6 +15,7 @@ class Project:
 
 @dataclass(frozen=True)
 class Supervisor:
+    email: str
     name: str
     is_chair: bool # chair (true) or non-chair (false)
     num_projects: int
@@ -55,10 +56,53 @@ def prepare_file(url):
     df = pd.read_csv(csv_content)
     return df
 
+def sorted_key(sup):
+    return 0 if isinstance(sup, SupervisorProjectBased) else 1
+
 def main():
+    """
+    Columns, ?? in total
+
+    Basic (0-6)
+    0: timestamp
+    1: email address
+    2: chair or non-chair
+    3: research areas (optional, could be deleted)
+    4: identification for chair
+    5: identification for non-chair
+    6: project-based or group-based
+
+    Project-based
+    7: range of the number of projects, either 1~4 or 5~8
+    8-15:
+        Range 1~4 
+            Required bachelor project (8-10)
+            8: title
+            9: description
+            10: number of other projects, between 0 and 3
+        Range 5~8:
+            Required bachelor projects (11-15)
+            11: title of 1st
+            12: description of 1st
+            13: title of 2nd
+            14: description of 2nd
+            15: number of other projects, between 3 and 6
+
+    16-33: Details of other projects
+    Each has 3 columns: 16-18, 19-21, 22-24, 25-27, 28-30, 31-33
+
+    Group-based
+    34: number of projects
+    35-41: number of bachelor projects for capacity from 2 to 8
+    
+    Courses
+    42: 1st course
+    43: 2nd course
+    44: 3rd course
+    """
     url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSq4ojmQailO4VAXs61pXaO8aTic2FTDLEuwKHrm5KHcShkkmxriqSDZwn9UNDwSgYvXNypWCh_SNJH/pub?output=csv'
     df = prepare_file(url)
-    
+
     list_supervisors = []
     list_supervisors_master = []
     list_supervisors_bachelor = []
@@ -66,14 +110,22 @@ def main():
     #TODO: two things: 1. separate the bachelor and master 2. first project-based then group based (optional sorting)
 
     for index, row in df.iterrows():
+        # email
+        email = row.iloc[1]
+
+        # chair or non-chair
         is_chair = True if row.iloc[2] == 'Chair' else False 
 
-        name = row.iloc[-2] if is_chair else row.iloc[-1]
+        # name
+        name = row.iloc[4] if is_chair else row.iloc[5]
 
-        courses = [row.iloc[-5], row.iloc[-4], row.iloc[-3]]
+        # courses
+        courses = [row.iloc[-3], row.iloc[-2], row.iloc[-1]]
         courses = [int(x) for x in courses if not math.isnan(x)]
 
-        if (row.iloc[4] == "project-based"):
+        if (row.iloc[6] == "project-based"):
+            range_num_projects = row.iloc[7]
+
             num_projects = int(row.iloc[6])
 
             projects = []
@@ -123,9 +175,6 @@ def main():
 
         list_supervisors.append(supervisor)
 
-    def sorted_key(sup):
-        return 0 if isinstance(sup, SupervisorProjectBased) else 1
-    
     list_supervisors_master = sorted(list_supervisors_master, key=sorted_key)
     list_supervisors_bachelor = sorted(list_supervisors_bachelor, key=sorted_key)
 
