@@ -49,14 +49,16 @@ def create_supervisor_selection_question(list_supervisors):
     for supervisor in list_supervisors:
         sheet.append_row([supervisor.name])
 
-def main():
+def prepare_file(url):
     # Download the file from Google Drive
-    url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT2TSn3joZFFrBeGShjgUHeTm5Zw1v3vPhxl53Wht0OVXDWAOtnZ_JbNrAgakmpJBOThZ00hUG5pyVV/pub?output=csv'
     csv_content = gdown.download(url, quiet=False)
-
-    # Data processing!
     df = pd.read_csv(csv_content)
+    return df
 
+def main():
+    url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSq4ojmQailO4VAXs61pXaO8aTic2FTDLEuwKHrm5KHcShkkmxriqSDZwn9UNDwSgYvXNypWCh_SNJH/pub?output=csv'
+    df = prepare_file(url)
+    
     list_supervisors = []
     list_supervisors_master = []
     list_supervisors_bachelor = []
