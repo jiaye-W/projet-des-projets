@@ -61,7 +61,7 @@ def sorted_key(sup):
 
 def main():
     """
-    Columns, ?? in total
+    There are 45 columns (0-44). 
 
     Basic (0-6)
     0: timestamp
@@ -100,14 +100,13 @@ def main():
     43: 2nd course
     44: 3rd course
     """
+
     url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSq4ojmQailO4VAXs61pXaO8aTic2FTDLEuwKHrm5KHcShkkmxriqSDZwn9UNDwSgYvXNypWCh_SNJH/pub?output=csv'
     df = prepare_file(url)
 
     list_supervisors = []
     list_supervisors_master = []
     list_supervisors_bachelor = []
-
-    #TODO: two things: 1. separate the bachelor and master 2. first project-based then group based (optional sorting)
 
     for index, row in df.iterrows():
         # email
@@ -116,57 +115,82 @@ def main():
         # chair or non-chair
         is_chair = True if row.iloc[2] == 'Chair' else False 
 
-        # name
+        # name (identification)
         name = row.iloc[4] if is_chair else row.iloc[5]
 
-        # courses
-        courses = [row.iloc[-3], row.iloc[-2], row.iloc[-1]]
-        courses = [int(x) for x in courses if not math.isnan(x)]
+        # three courses
+        courses = [row.iloc[42], row.iloc[43], row.iloc[44]]
+        courses = [int(x) for x in courses if not math.isnan(float(x))]
 
         if (row.iloc[6] == "project-based"):
             range_num_projects = row.iloc[7]
 
-            num_projects = int(row.iloc[6])
+            # num_projects = int(row.iloc[6])
 
-            projects = []
+            # projects = []
             master_projects = []
             bachelor_projects = []
 
-            num_master_projects = 0
-            num_bachelor_projects = 0
+            # num_master_projects = 0
+            # num_bachelor_projects = 0
+
+            num_other_projects = 0
+
+            # Add required bachelor project(s)
+            if range_num_projects == '1 ~ 4':
+                bachelor_projects.append(Project(title=row.iloc[8], 
+                                        description=row.iloc[9], 
+                                        target_students='Bachelor'))
+                num_other_projects = row.iloc[10]
+
+                # num_bachelor_projects += 1
+
+            elif range_num_projects == '5 ~ 8':
+                bachelor_projects.append(Project(title=row.iloc[11], 
+                                        description=row.iloc[12], 
+                                        target_students='Bachelor'))
+                bachelor_projects.append(Project(title=row.iloc[13], 
+                                        description=row.iloc[14], 
+                                        target_students='Bachelor'))
+                num_other_projects = row.iloc[15]
+
+                # num_bachelor_projects += 2
             
-            for index in range(0, 8):
-                start_col = 30 - index * 3
+            # Add other projects, iterate backwards
+            for index in range(0, int(num_other_projects)):
+                start_col = 31 - 3 * index
 
-                target_students = row.iloc[start_col]
-                if pd.notna(target_students):
-                    description = row.iloc[start_col - 1]
-                    title = row.iloc[start_col - 2]
+                title = row.iloc[start_col]
+                description = row.iloc[start_col + 1]
+                target_students = row.iloc[start_col + 2]
 
-                    projects.append(Project(title, description, target_students))
+                # projects.append(Project(title, description, target_students))
 
-                    if target_students == 'Master':
-                        num_master_projects += 1
-                        master_projects.append(Project(title, description, target_students))
+                if target_students == 'Master':
+                    num_master_projects += 1
+                    master_projects.append(Project(title, description, target_students))
 
-                    elif target_students == 'Bachelor':
-                        num_bachelor_projects += 1
-                        bachelor_projects.append(Project(title, description, target_students))
+                elif target_students == 'Bachelor':
+                    num_bachelor_projects += 1
+                    bachelor_projects.append(Project(title, description, target_students))
+            
+            projects = bachelor_projects + master_projects
+            num_projects = len(projects)
 
-            supervisor = SupervisorProjectBased(name, is_chair, num_projects, courses, projects)
+            supervisor = SupervisorProjectBased(email, name, is_chair, num_projects, courses, projects)
             
             if (num_master_projects != 0):
-                list_supervisors_master.append(SupervisorProjectBased(name, is_chair, num_master_projects, courses, master_projects))
+                list_supervisors_master.append(SupervisorProjectBased(email, name, is_chair, num_master_projects, courses, master_projects))
 
             if (num_bachelor_projects != 0):
-                list_supervisors_bachelor.append(SupervisorProjectBased(name, is_chair, num_bachelor_projects, courses, bachelor_projects))
+                list_supervisors_bachelor.append(SupervisorProjectBased(email, name, is_chair, num_bachelor_projects, courses, bachelor_projects))
 
         else:
-            num_projects = int(row.iloc[-7])
-            num_master_projects = int(row.iloc[-6])
-            num_bachelor_projects = num_projects - num_master_projects
+            num_projects = int(row.iloc[34])
+            num_bachelor_projects = int(row.iloc[33 + num_projects])
+            num_master_projects = num_projects - num_bachelor_projects
 
-            supervisor = SupervisorGroupBased(name, is_chair, num_projects, courses, num_master_projects)
+            supervisor = SupervisorGroupBased(email, name, is_chair, num_projects, courses, num_master_projects)
 
             if (num_bachelor_projects != 0):
                 list_supervisors_bachelor.append(supervisor)
@@ -175,8 +199,10 @@ def main():
 
         list_supervisors.append(supervisor)
 
+    # Sort the supervisors: first project-based then group-based
     list_supervisors_master = sorted(list_supervisors_master, key=sorted_key)
     list_supervisors_bachelor = sorted(list_supervisors_bachelor, key=sorted_key)
+
 
     # Writefile, print out the results. 
     with open('supervisor_form_1_bachelor.txt', 'w') as file:
