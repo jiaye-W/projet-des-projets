@@ -2,7 +2,14 @@
 venv
 
 references/
+
 playground/
 __pycache__/
 
+src/interfaces/textual-outputs/
+pub?output=csv
+
 results/
+
+temp-reqs.txt
+references/FSW23.pdf
