@@ -71,11 +71,12 @@ function buildQuestionsOfOneChoice(form, list_supervisors, index, isRequired)
   supervisorSelection.setTitle('Please select a supervisor')
     .setRequired(isRequired);
 
-  // Extract supervisor names into an array
+  // Extract supervisor names into an array, together with attribute of project-based/group-based
   var supervisorNames = list_supervisors.map
   (function(supervisor) 
   {
-    return supervisor.name.toString(); 
+    let sup_type = (supervisor instanceof SupervisorProjectBased) ? '[Project-based] ' : '[Group-based] ';
+    return sup_type + supervisor.name.toString(); 
   });
 
   var choices = [];
