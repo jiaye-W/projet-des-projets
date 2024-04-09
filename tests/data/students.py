@@ -32,8 +32,13 @@ def generate_students(seed_value, count):
         degree = generate_degree_of_student(random, probability_of_master=0.7)
 
         # generate the research interest 
-        bias_weights = [0.1, 0.05, 0.4, 0.05, 0.05, 0.05, 0.25, 0.05] # biased list of weights
-        research_interest = random.choices(research_areas, weights=bias_weights)[0]
+        biased_weights = [0.1, 0.05, 0.4, 0.05, 0.05, 0.05, 0.25, 0.05] # biased list of weights
+        unbiased_weights = [0.125] * 8
+
+        use_biased_weights = False # can choose to use bias or not
+
+        weights = biased_weights if use_biased_weights else unbiased_weights
+        research_interest = random.choices(research_areas, weights)[0]
 
         # choose 2 chairs from each research areas
         selected_chairs = random.sample(sma[research_interest], 2)
