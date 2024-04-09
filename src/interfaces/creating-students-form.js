@@ -26,10 +26,19 @@ function buildQuestions(form, list_supervisors)
   // Sort the supervisors, first project-based then group-based
   list_supervisors.sort((a, b) => sorted_key(a) - sorted_key(b));
 
-  // Add the ID question
+  // Ask for their names
+  var firstNameQuestion = form.addTextItem();
+  firstNameQuestion.setTitle('First name').setRequired(true);
+
+  var lastNameQuestion = form.addTextItem();
+  lastNameQuestion.setTitle('Last name').setRequired(true);
+
+  // Ask for their SCIPER numbers
   var idQuestion = form.addTextItem();
   idQuestion.setTitle('SCIPER').setRequired(true);
-  //TODO: Add validation of whole number
+  // Add Validation for input
+  var idValidation = FormApp.createTextValidation().requireWholeNumber().build();
+  idQuestion.setValidation(idValidation);
 
   var sectionProjectOne = form.addPageBreakItem().setTitle("Your 1st choice");
   pagesOne = buildQuestionsOfOneChoice(form, list_supervisors, form.getItems().length-1, true);
