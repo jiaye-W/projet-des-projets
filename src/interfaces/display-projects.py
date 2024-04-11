@@ -2,10 +2,6 @@ import gdown
 import math
 from dataclasses import dataclass
 import pandas as pd
-# import gspread
-# from oauth2client.service_account import ServiceAccountCredentials
-# from google.oauth2 import service_account
-from googleapiclient.discovery import build
 
 @dataclass(frozen=True)
 class Project:
@@ -29,27 +25,6 @@ class SupervisorProjectBased(Supervisor):
 class SupervisorGroupBased(Supervisor):
     num_master_projects: int
 
-# Function to create supervisor selection question
-def create_supervisor_selection_question(list_supervisors):
-    form_id = '1BUrjIpvwT5SQzEAW61qhBTDr0XL5RP1DTRp-kkEjaEo'
-
-    # Use gspread to access the Google Form
-    # Authenticate with Google API
-    
-    service = build('forms', 'v1')
-
-    # Retrieve the form
-    response = service.forms().get(formId=form_id).execute()
-    form = response['form']
-    
-    # Add a multiple-choice question
-    sheet = form.get_sheet(0)
-    sheet.append_row(['Please select your preferred supervisor for your project:'])
-    
-    # Populate options from the list_supervisors array
-    for supervisor in list_supervisors:
-        sheet.append_row([supervisor.name])
-
 def prepare_file(url):
     # Download the file from Google Drive
     csv_content = gdown.download(url, quiet=False)
@@ -59,7 +34,7 @@ def prepare_file(url):
 def sorted_key(sup):
     return 0 if isinstance(sup, SupervisorProjectBased) else 1
 
-def main():
+def build_supervisors():
     """
     There are 45 columns (0-44). 
 
@@ -203,13 +178,24 @@ def main():
     list_supervisors_master = sorted(list_supervisors_master, key=sorted_key)
     list_supervisors_bachelor = sorted(list_supervisors_bachelor, key=sorted_key)
 
+    return list_supervisors_bachelor, list_supervisors_master
 
-    # Writefile, print out the results. 
-    with open('src/interfaces/textual-outputs/supervisor_form_1_bachelor.txt', 'w') as file:
+def results_writefile(list_supervisors, students):
+    """Write the information of all supervisors to a file.
+       Work for both bachelor and master projects. 
+
+    Args:
+        list_supervisors (list[Supervisor])
+        students (str): either 'bachelor' or 'master'
+    """
+    
+    address = f'src/interfaces/textual-outputs/supervisor_form_1_{students}.txt'
+
+    with open(address, 'w') as file:
         file.write('-' * 200 + '\n')
         sup_index = 1
 
-        for sup in list_supervisors_bachelor:
+        for sup in list_supervisors:
             sup_type = 'project-based' if isinstance(sup, SupervisorProjectBased) else 'group-based'
             file.write('\n')
             file.write(f'{sup_index}. {sup.name} ({sup_type})' + '\n')
@@ -237,37 +223,8 @@ def main():
 
             file.write('-' * 100 + '\n')
 
-    with open('src/interfaces/textual-outputs/supervisor_form_1_master.txt', 'w') as file:
-        file.write('-' * 200 + '\n')
-        sup_index = 1
-
-        for sup in list_supervisors_master:
-            sup_type = 'project-based' if isinstance(sup, SupervisorProjectBased) else 'group-based'
-            file.write('\n')
-            file.write(f'{sup_index}. {sup.name} ({sup_type})' + '\n')
-            sup_index += 1
-
-            file.write('\n')
-            file.write(f'There are {sup.num_projects} projects.' + '\n')
-
-            if sup_type == 'project-based':
-                file.write('\n')
-                proj_index = 1
-                for proj in sup.projects:
-                    file.write('\t' + f'Project {proj_index} ({proj.target_students})' + '\n')
-                    file.write('\t' + f'Title: {proj.title}' + '\n')
-                    file.write('\t' + f'Description: {proj.description}' + '\n')
-                    file.write('\n')
-                    proj_index += 1
-
-            else:
-                file.write(f'{sup.num_master_projects} projects for master students.')
-                file.write('\n' + '\n')
-
-            file.write(f'Required courses: {sup.courses if sup.courses else None}' + '\n')
-            file.write('\n')
-
-            file.write('-' * 100 + '\n')
-
 if __name__ == "__main__":
-    main()
+    list_supervisors_bachelor, list_supervisors_master = build_supervisors()
+
+    results_writefile(list_supervisors=list_supervisors_bachelor, students='bachelor')
+    results_writefile(list_supervisors=list_supervisors_master, students='master')
