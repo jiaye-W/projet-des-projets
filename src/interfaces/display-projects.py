@@ -1,30 +1,9 @@
 import gdown
 import math
-from dataclasses import dataclass
 import pandas as pd
+from objects import *
 
-@dataclass(frozen=True)
-class Project:
-    title: str
-    description: str
-    target_students: str
-
-@dataclass(frozen=True)
-class Supervisor:
-    email: str
-    name: str
-    is_chair: bool # chair (true) or non-chair (false)
-    num_projects: int
-    courses: list[int] # required courses, <= 3
-
-@dataclass(frozen=True)
-class SupervisorProjectBased(Supervisor):
-    projects: list[Project]
-
-@dataclass(frozen=True)
-class SupervisorGroupBased(Supervisor):
-    num_master_projects: int
-
+#TODO: separate these dataclasses into a new file and try to use them elsewhere (e.g., in the script processing-students.py)
 def prepare_file(url):
     # Download the file from Google Drive
     csv_content = gdown.download(url, quiet=False)
@@ -38,7 +17,7 @@ def build_supervisors():
     """
     There are 45 columns (0-44). 
 
-    Basic (0-6)
+    Basic information (0-6)
     0: timestamp
     1: email address
     2: chair or non-chair

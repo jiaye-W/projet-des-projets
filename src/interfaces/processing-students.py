@@ -6,7 +6,7 @@ Processing students' responses
 """
 
 import gdown
-from dataclasses import dataclass
+from objects import *
 import pandas as pd
 
 def main():
@@ -21,8 +21,7 @@ def main():
     info_extraction(df)
 
 def prepare_file(url):
-    """Pre-processing of students' responses, 
-    should work for both bachelor and master students.
+    """Pre-processing of students' responses, which should work for both bachelor and master students.
 
     Args:
         url (string): _description_
@@ -50,8 +49,10 @@ def info_extraction(df):
             3: last name
             4: SCIPER
 
-        5 * 
-        
+        5 same units, 
+        where each unit contains (can get these information from supervisor-form-1):
+            1 col for choosing projects (only for project-based),  
+            0-3 cols for grades of courses
 
     Returns:
         _type_: _description_
@@ -67,22 +68,6 @@ def info_extraction(df):
         sciper = row.iloc[4]
 
     return 0
-
-# This has conflict with the Project dataclass used before in display-projects.py
-@dataclass(frozen=True)
-class Project:
-    supervisor: str
-    title: str
-    description: str
-    target_students: str
-
-@dataclass(frozen=True)
-class Student:
-    degree: str # 'bachelor' or 'master'
-    name: str # full name
-    sciper: int # 6-digit number
-
-    projects: list[Project] # sorted based on preferences
 
 if __name__ == "__main__":
     main()
