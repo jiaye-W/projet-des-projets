@@ -3,6 +3,16 @@ import math
 import pandas as pd
 from objects import *
 
+#TODO: validations 
+def automated_emails():
+    return 0
+
+def repetition_courses(): # check if the required courses are repeated
+    return 0
+
+def check_submission(): # check if someone has submitted or not
+    return 0
+
 #TODO: separate these dataclasses into a new file and try to use them elsewhere (e.g., in the script processing-students.py)
 def prepare_file(url):
     # Download the file from Google Drive
@@ -15,7 +25,10 @@ def sorted_key(sup):
 
 def build_supervisors():
     """
-    There are 45 columns (0-44). 
+    File name: Supervisors-1 (Responses)
+    Last update: 12.04.24
+
+    There are 51 columns (0-50). 
 
     Basic information (0-6)
     0: timestamp
@@ -47,15 +60,16 @@ def build_supervisors():
 
     Group-based
     34: number of projects
-    35-41: number of bachelor projects for capacity from 2 to 8
+    35-41: number of bachelor projects, for capacity from 2 to 8
+    42-47: number of master projects
     
     Courses
-    42: 1st course
-    43: 2nd course
-    44: 3rd course
+    48: 1st course
+    49: 2nd course
+    50: 3rd course
     """
 
-    url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSq4ojmQailO4VAXs61pXaO8aTic2FTDLEuwKHrm5KHcShkkmxriqSDZwn9UNDwSgYvXNypWCh_SNJH/pub?output=csv'
+    url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQMBJ__CI_S02nVV7citWOt15oVU21--nOuyHrJi0JnVN2bJqWUg5ElPy3ZY_7adBXfkxfTaHXvojCg/pub?output=csv'
     df = prepare_file(url)
 
     list_supervisors = []
@@ -76,42 +90,31 @@ def build_supervisors():
         name = row.iloc[4] if is_chair else row.iloc[5]
 
         # Three courses
-        courses = [row.iloc[42], row.iloc[43], row.iloc[44]]
+        courses = [row.iloc[48], row.iloc[49], row.iloc[50]]
         courses = [int(x) for x in courses if not math.isnan(float(x))]
 
         if (row.iloc[6] == "project-based"):
             range_num_projects = row.iloc[7]
 
-            # num_projects = int(row.iloc[6])
-
-            # projects = []
-            master_projects = []
             bachelor_projects = []
-
-            # num_master_projects = 0
-            # num_bachelor_projects = 0
-
+            master_projects = []
+            undefined_projects = []
+            
             num_other_projects = 0
-
             # Add required bachelor project(s)
             if range_num_projects == '1 ~ 4':
                 bachelor_projects.append(Project(title=row.iloc[8], 
                                         description=row.iloc[9], 
-                                        target_students='Bachelor'))
+                                        target_students='bachelor'))
                 num_other_projects = row.iloc[10]
-
-                # num_bachelor_projects += 1
-
             elif range_num_projects == '5 ~ 8':
                 bachelor_projects.append(Project(title=row.iloc[11], 
                                         description=row.iloc[12], 
-                                        target_students='Bachelor'))
+                                        target_students='bachelor'))
                 bachelor_projects.append(Project(title=row.iloc[13], 
                                         description=row.iloc[14], 
-                                        target_students='Bachelor'))
+                                        target_students='bachelor'))
                 num_other_projects = row.iloc[15]
-
-                # num_bachelor_projects += 2
             
             # Add other projects, iterate backwards
             for index in range(0, int(num_other_projects)):
@@ -121,40 +124,33 @@ def build_supervisors():
                 description = row.iloc[start_col + 1]
                 target_students = row.iloc[start_col + 2]
 
-                # projects.append(Project(title, description, target_students))
-
-                if target_students == 'Master':
-                    num_master_projects += 1
-                    master_projects.append(Project(title, description, target_students))
-
-                elif target_students == 'Bachelor':
-                    num_bachelor_projects += 1
-                    bachelor_projects.append(Project(title, description, target_students))
+                if target_students == 'Bachelor':
+                    bachelor_projects.append(Project(title, description, 'bachelor'))
+                elif target_students == 'Master':
+                    master_projects.append(Project(title, description, 'master'))
+                else: # undefined projects
+                    undefined_projects.append(Project(title, description, 'undefined'))
             
-            projects = bachelor_projects + master_projects
+            projects = bachelor_projects + master_projects + undefined_projects
             num_projects = len(projects)
 
-            supervisor = SupervisorProjectBased(email, name, is_chair, tracks, num_projects, courses, projects)
-            
-            if (num_master_projects != 0):
-                list_supervisors_master.append(SupervisorProjectBased(email, name, is_chair, tracks, num_master_projects, courses, master_projects))
-
-            if (num_bachelor_projects != 0):
-                list_supervisors_bachelor.append(SupervisorProjectBased(email, name, is_chair, tracks, num_bachelor_projects, courses, bachelor_projects))
+            supervisor = SupervisorProjectBased(email, name, is_chair, tracks, num_projects, courses, 
+                                                len(bachelor_projects), len(master_projects), len(undefined_projects), projects)
 
         else:
             num_projects = int(row.iloc[34])
-            num_bachelor_projects = int(row.iloc[33 + num_projects])
-            num_master_projects = num_projects - num_bachelor_projects
+            num_bachelor_projects = int(row.iloc[33 + num_projects]) 
+            num_master_projects = int(row.iloc[41 + num_projects - num_bachelor_projects])
+            num_undefined_projects = num_projects - num_bachelor_projects - num_master_projects
 
-            supervisor = SupervisorGroupBased(email, name, is_chair, tracks, num_projects, courses, num_master_projects)
-
-            if (num_bachelor_projects != 0):
-                list_supervisors_bachelor.append(supervisor)
-            if (num_master_projects != 0):
-                list_supervisors_master.append(supervisor)
+            supervisor = SupervisorGroupBased(email, name, is_chair, tracks, num_projects, courses, 
+                                              num_bachelor_projects, num_master_projects, num_undefined_projects)
 
         list_supervisors.append(supervisor)
+        if ((num_bachelor_projects + num_undefined_projects) != 0):
+            list_supervisors_bachelor.append(supervisor)
+        if ((num_master_projects + num_undefined_projects) != 0):
+            list_supervisors_master.append(supervisor)
 
     # Sort the supervisors: first project-based then group-based
     list_supervisors_master = sorted(list_supervisors_master, key=sorted_key)
@@ -180,28 +176,28 @@ def results_writefile(list_supervisors, students):
         for sup in list_supervisors:
             sup_type = 'project-based' if isinstance(sup, SupervisorProjectBased) else 'group-based'
             file.write('\n')
-            file.write(f'{sup_index}. {sup.name} ({sup_type})' + '\n')
+            file.write(f'{sup_index}. {sup.name} [{sup_type}]' + '\n')
             sup_index += 1
 
             file.write('\n')
             file.write(f'Research areas (tracks): {sup.tracks}' + '\n')
-            
+
             file.write('\n')
-            file.write(f'There are {sup.num_projects} projects.' + '\n')
+            number_of_projects = sup.num_bachelor_projects if students == 'bachelor' else sup.num_master_projects
+            number_of_projects += sup.num_undefined_projects
+            file.write(f'There are {number_of_projects} projects for {students} students.' + '\n')
 
             if sup_type == 'project-based':
                 file.write('\n')
                 proj_index = 1
                 for proj in sup.projects:
-                    file.write('\t' + f'Project {proj_index} ({proj.target_students})' + '\n')
-                    file.write('\t' + f'Title: {proj.title}' + '\n')
-                    file.write('\t' + f'Description: {proj.description}' + '\n')
-                    file.write('\n')
-                    proj_index += 1
-
+                    if proj.target_students == students or proj.target_students == 'undefined':
+                        file.write('\t' + f'Project {proj_index} ({proj.target_students})' + '\n')
+                        file.write('\t' + f'Title: {proj.title}' + '\n')
+                        file.write('\t' + f'Description: {proj.description}' + '\n\n')
+                        proj_index += 1
             else:
-                file.write(f'{sup.num_projects - sup.num_master_projects} projects for bachelor students.')
-                file.write('\n' + '\n')
+                file.write('\n')
 
             file.write(f'Required courses: {sup.courses if sup.courses else None}' + '\n')
             file.write('\n')

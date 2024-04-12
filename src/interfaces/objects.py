@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+#TODO the interaction issue between the Project and Supervisor, because they use each other in their properties.
 @dataclass(frozen=True)
 class Project:
     title: str
@@ -17,11 +18,16 @@ class Supervisor:
 
 @dataclass(frozen=True)
 class SupervisorProjectBased(Supervisor):
+    num_bachelor_projects: int
+    num_master_projects: int
+    num_undefined_projects: int
     projects: list[Project]
 
 @dataclass(frozen=True)
 class SupervisorGroupBased(Supervisor):
+    num_bachelor_projects: int
     num_master_projects: int
+    num_undefined_projects: int
 
 @dataclass(frozen=True)
 class Student:
@@ -29,4 +35,5 @@ class Student:
     name: str # full name
     sciper: int # 6-digit number
 
-    projects: list[Project] # sorted based on preferences
+    preferences: list[Project] # sorted based on preferences
+    grades: dict[int, int] # key: course number (xxx) value: grade (int)
