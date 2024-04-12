@@ -11,6 +11,7 @@ class Supervisor:
     email: str
     name: str
     is_chair: bool # chair (true) or non-chair (false)
+    tracks: str
     num_projects: int
     courses: list[int] # required courses, <= 3
 
@@ -29,4 +30,3 @@ class Student:
     sciper: int # 6-digit number
 
     projects: list[Project] # sorted based on preferences
-    

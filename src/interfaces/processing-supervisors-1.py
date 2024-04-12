@@ -63,16 +63,19 @@ def build_supervisors():
     list_supervisors_bachelor = []
 
     for index, row in df.iterrows():
-        # email
+        # Email
         email = row.iloc[1]
 
-        # chair or non-chair
+        # Chair or non-chair
         is_chair = True if row.iloc[2] == 'Chair' else False 
 
-        # name (identification)
+        # Research areas (tracks)
+        tracks = row.iloc[3]
+
+        # Name (identification)
         name = row.iloc[4] if is_chair else row.iloc[5]
 
-        # three courses
+        # Three courses
         courses = [row.iloc[42], row.iloc[43], row.iloc[44]]
         courses = [int(x) for x in courses if not math.isnan(float(x))]
 
@@ -131,20 +134,20 @@ def build_supervisors():
             projects = bachelor_projects + master_projects
             num_projects = len(projects)
 
-            supervisor = SupervisorProjectBased(email, name, is_chair, num_projects, courses, projects)
+            supervisor = SupervisorProjectBased(email, name, is_chair, tracks, num_projects, courses, projects)
             
             if (num_master_projects != 0):
-                list_supervisors_master.append(SupervisorProjectBased(email, name, is_chair, num_master_projects, courses, master_projects))
+                list_supervisors_master.append(SupervisorProjectBased(email, name, is_chair, tracks, num_master_projects, courses, master_projects))
 
             if (num_bachelor_projects != 0):
-                list_supervisors_bachelor.append(SupervisorProjectBased(email, name, is_chair, num_bachelor_projects, courses, bachelor_projects))
+                list_supervisors_bachelor.append(SupervisorProjectBased(email, name, is_chair, tracks, num_bachelor_projects, courses, bachelor_projects))
 
         else:
             num_projects = int(row.iloc[34])
             num_bachelor_projects = int(row.iloc[33 + num_projects])
             num_master_projects = num_projects - num_bachelor_projects
 
-            supervisor = SupervisorGroupBased(email, name, is_chair, num_projects, courses, num_master_projects)
+            supervisor = SupervisorGroupBased(email, name, is_chair, tracks, num_projects, courses, num_master_projects)
 
             if (num_bachelor_projects != 0):
                 list_supervisors_bachelor.append(supervisor)
@@ -180,6 +183,9 @@ def results_writefile(list_supervisors, students):
             file.write(f'{sup_index}. {sup.name} ({sup_type})' + '\n')
             sup_index += 1
 
+            file.write('\n')
+            file.write(f'Research areas (tracks): {sup.tracks}' + '\n')
+            
             file.write('\n')
             file.write(f'There are {sup.num_projects} projects.' + '\n')
 
