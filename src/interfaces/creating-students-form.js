@@ -33,10 +33,11 @@ function buildQuestions(form, list_supervisors)
   var lastNameQuestion = form.addTextItem();
   lastNameQuestion.setTitle('Last name').setRequired(true);
 
-  // Ask for their SCIPER numbers
+  // Ask for students' SCIPER
   var idQuestion = form.addTextItem();
   idQuestion.setTitle('SCIPER').setRequired(true);
-  // Add Validation for input
+
+  // Add Validation for SCIPER input
   var idValidation = FormApp.createTextValidation().requireWholeNumber().build();
   idQuestion.setValidation(idValidation);
 
@@ -102,17 +103,22 @@ function buildQuestionsOfOneChoice(form, list_supervisors, index, isRequired)
   }
   supervisorSelection.setChoices(choices);
 
-  var count_proj_based = 0;
-  var count_group_based = 0; 
-
   for (var i = 0; i < list_supervisors.length; i++)
   {
     var sup = list_supervisors[i];
+    var indexMoveItem = pages[i].getIndex(); // Index of section of this supervisor
+
+    const hasProjectsQuestion = sup instanceof SupervisorProjectBased;
+
+    var courses = sup.courses;
+    var filteredCourses = courses.filter(function(course){ return !isNaN(course);});
+    const hasCoursesQuestion = filteredCourses.length !== 0;
 
     // Add question of selecting projects for project-based supervisors. 
-    if (sup instanceof SupervisorProjectBased)
+    if (hasProjectsQuestion)
     {
-      count_proj_based ++;
+      indexMoveItem ++; // Update the index for moving item
+
       var projectQuestion = form.addMultipleChoiceItem().setTitle('Please select a project:').setRequired(true);
       
       var projects = sup.projects;
@@ -123,25 +129,20 @@ function buildQuestionsOfOneChoice(form, list_supervisors, index, isRequired)
 
       projectQuestion.setChoiceValues(projectTitles);
 
-      form.moveItem(projectQuestion.getIndex(), index + count_proj_based * 3 + count_group_based * 2);  
+      form.moveItem(projectQuestion.getIndex(), indexMoveItem);
     }
-    else
+    
+    // Add question of required courses
+    if (hasCoursesQuestion)
     {
-      count_group_based ++;
-    }
+      indexMoveItem ++;
 
-    // Add question for required courses
-    var courses = sup.courses;
-    var filteredCourses = courses.filter(function(course){ return !isNaN(course);});
-
-    if (filteredCourses.length !== 0)
-    {
       var coursesQuestion = form.addGridItem().setRequired(true);
       coursesQuestion.setTitle('Please provide the grades of the following course(s): ')
       .setRows(filteredCourses.map(element => "MATH-" + element))
       .setColumns(['<4', '4', '4.25', '4.5', '4.75', '5', '5.25', '5.5', '5.75', '6']);
 
-      form.moveItem(coursesQuestion.getIndex(), index + count_proj_based * 3 + 1 + count_group_based * 2);
+      form.moveItem(coursesQuestion.getIndex(), indexMoveItem);
     }
   }
   return pages;
@@ -157,73 +158,84 @@ function dataProcessing(csv_content)
 
   for (let i = 1; i < rows.length; i++) // Need to start from the 2nd row, i.e. i=1
   {
-      const row = rows[i];
+    const row = rows[i];
 
-      // Extract data from each row
-      const email = row[1];
-      const isChair = row[2] === 'Chair';
-      const name = isChair ? row[4] : row[5];
-      const courses = [parseInt(row[42]), parseInt(row[43]), parseInt(row[44])].filter(x => !isNaN(x));
+    // Extract data from each row
+    const email = row[1];
+    const isChair = row[2] === 'Chair';
+    const name = isChair ? row[4] : row[5];
+    const courses = [parseInt(row[48]), parseInt(row[49]), parseInt(row[50])].filter(x => !isNaN(x));
 
-      if (row[6] === 'project-based') 
+    if (row[6] === 'project-based') 
+    {
+      const rangeNumProjects = row[7];
+      let numOtherProjects = 0;
+
+      var supervisor;
+
+      const masterProjects = [];
+      const bachelorProjects = [];
+      const undefinedProjects = [];
+
+      if (rangeNumProjects === '1 ~ 4') 
       {
-          const rangeNumProjects = row[7];
-          let numOtherProjects = 0;
-
-          const masterProjects = [];
-          const bachelorProjects = [];
-
-          if (rangeNumProjects === '1 ~ 4') {
-              bachelorProjects.push(new Project(row[8], row[9], 'Bachelor'));
-              numOtherProjects = row[10];
-          } else if (rangeNumProjects === '5 ~ 8') {
-              bachelorProjects.push(new Project(row[11], row[12], 'Bachelor'));
-              bachelorProjects.push(new Project(row[13], row[14], 'Bachelor'));
-              numOtherProjects = row[15];
-          }
-
-          for (let j = 0; j < parseInt(numOtherProjects); j++) {
-              const startCol = 31 - (3 * j);
-              const title = row[startCol];
-              const description = row[startCol + 1];
-              const targetStudents = row[startCol + 2];
-
-              if (targetStudents === 'Master') {
-                  masterProjects.push(new Project(title, description, 'Master'));
-              } else if (targetStudents === 'Bachelor') {
-                  bachelorProjects.push(new Project(title, description, 'Bachelor'));
-              }
-          }
-
-          const projects = bachelorProjects.concat(masterProjects);
-          const numProjects = projects.length;
-
-          const supervisor = new SupervisorProjectBased(email, name, isChair, numProjects, courses, projects);
-
-          if (masterProjects.length !== 0) {
-              listSupervisorsMaster.push(new SupervisorProjectBased(email, name, isChair, masterProjects.length, courses, masterProjects));
-          }
-
-          if (bachelorProjects.length !== 0) {
-              listSupervisorsBachelor.push(new SupervisorProjectBased(email, name, isChair, bachelorProjects.length, courses, bachelorProjects));
-          }
+        bachelorProjects.push(new Project(row[8], row[9], 'bachelor'));
+        numOtherProjects = row[10];
       } 
-      else 
+      else if (rangeNumProjects === '5 ~ 8') 
       {
-          const numProjects = parseInt(row[34]);
-          const numBachelorProjects = parseInt(row[33 + numProjects]);
-          const numMasterProjects = numProjects - numBachelorProjects;
-
-          const supervisor = new SupervisorGroupBased(email, name, isChair, numProjects, courses, numMasterProjects);
-
-          if (numBachelorProjects !== 0) {
-              listSupervisorsBachelor.push(supervisor);
-          }
-
-          if (numMasterProjects !== 0) {
-              listSupervisorsMaster.push(supervisor);
-          }
+        bachelorProjects.push(new Project(row[11], row[12], 'bachelor'));
+        bachelorProjects.push(new Project(row[13], row[14], 'bachelor'));
+        numOtherProjects = row[15];
       }
+
+      for (let j = 0; j < parseInt(numOtherProjects); j++) 
+      {
+        const startCol = 31 - (3 * j);
+        const title = row[startCol];
+        const description = row[startCol + 1];
+        const targetStudents = row[startCol + 2];
+
+        if (targetStudents === 'Master') 
+        {
+          masterProjects.push(new Project(title, description, 'master'));
+        } 
+        else if (targetStudents === 'Bachelor') 
+        {
+          bachelorProjects.push(new Project(title, description, 'bachelor'));
+        }
+        else
+        {
+          undefinedProjects.push(new Project(title, description, 'undefined'));
+        }
+      }
+
+      const projects = [...bachelorProjects, ...masterProjects, ...undefinedProjects];
+      const numProjects = projects.length;
+
+      supervisor = new SupervisorProjectBased(email, name, isChair, numProjects, courses, 
+      bachelorProjects.length, masterProjects.length, undefinedProjects.length, projects);
+    } 
+    else 
+    {
+      const numProjects = parseInt(row[34]);
+      const numBachelorProjects = parseInt(row[33 + numProjects]);
+      const numMasterProjects = parseInt(row[41 + numProjects - numBachelorProjects]);
+      const numUndefinedProjects = numProjects - numBachelorProjects - numMasterProjects;
+
+      supervisor = new SupervisorGroupBased(email, name, isChair, numProjects, courses,
+      numBachelorProjects, numMasterProjects, numUndefinedProjects);
+    }
+
+    if ((supervisor.num_bachelor_projects + supervisor.num_undefined_projects) !== 0) 
+    {
+      listSupervisorsBachelor.push(supervisor);
+    }
+
+    if ((supervisor.num_master_projects + supervisor.num_undefined_projects) !== 0) 
+    {
+      listSupervisorsMaster.push(supervisor);
+    }
   }
   return [listSupervisorsBachelor, listSupervisorsMaster];
 }
@@ -268,18 +280,26 @@ function Supervisor(email, name, is_chair, num_projects, courses)
   this.courses = courses;
 }
 
-function SupervisorProjectBased(email, name, is_chair, num_projects, courses, projects) 
+function SupervisorProjectBased(email, name, is_chair, num_projects, courses, num_bachelor_projects, num_master_projects, num_undefined_projects, projects) 
 {
   Supervisor.call(this, email, name, is_chair, num_projects, courses);
+
+  this.num_bachelor_projects = num_bachelor_projects;
+  this.num_master_projects = num_master_projects;
+  this.num_undefined_projects = num_undefined_projects;
+
   this.projects = projects;
 }
 
 SupervisorProjectBased.prototype = Object.create(Supervisor.prototype);
 
-function SupervisorGroupBased(email, name, is_chair, num_projects, courses, num_master_projects) 
+function SupervisorGroupBased(email, name, is_chair, num_projects, courses, num_bachelor_projects, num_master_projects, num_undefined_projects) 
 {
   Supervisor.call(this, email, name, is_chair, num_projects, courses);
+
+  this.num_bachelor_projects = num_bachelor_projects;
   this.num_master_projects = num_master_projects;
+  this.num_undefined_projects = num_undefined_projects;
 }
 
 SupervisorGroupBased.prototype = Object.create(Supervisor.prototype);
