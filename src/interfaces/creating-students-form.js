@@ -3,7 +3,7 @@ function main()
   deleteEverything();
 
   // Get the data from the responses of supervisors-form-1
-  const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSq4ojmQailO4VAXs61pXaO8aTic2FTDLEuwKHrm5KHcShkkmxriqSDZwn9UNDwSgYvXNypWCh_SNJH/pub?output=csv';
+  const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQMBJ__CI_S02nVV7citWOt15oVU21--nOuyHrJi0JnVN2bJqWUg5ElPy3ZY_7adBXfkxfTaHXvojCg/pub?output=csv';
   var csv_content = readDataFromResponses(url);
 
   // Process the data to get two lists of supervisors, one for bachelor students and the other for master students
@@ -14,7 +14,7 @@ function main()
 
   // Choose to build which form, bachelor or master by simply change the boolean variable
   // Note: The app scripts are separate for bachelor and master, only change it here so that we only have to track this file.
-  buildBachelorForm = true;
+  buildBachelorForm = false;
   list_supervisors = buildBachelorForm ? list_supervisors_bachelor : list_supervisors_master;
 
   // Build up the questions
@@ -42,37 +42,37 @@ function buildQuestions(form, list_supervisors)
   idQuestion.setValidation(idValidation);
 
   var sectionProjectOne = form.addPageBreakItem().setTitle("Your 1st choice");
-  pagesOne = buildQuestionsOfOneChoice(form, list_supervisors, form.getItems().length-1, true);
+  pagesOne = buildQuestionsOfOneChoice(form, list_supervisors, true);
 
   var sectionProjectTwo = form.addPageBreakItem().setTitle("Your 2nd choice");
   form.moveItem(sectionProjectTwo.getIndex(), form.getItems().length-1);
   pagesOne.map(function(page){ page.setGoToPage(sectionProjectTwo); });
 
-  pagesTwo = buildQuestionsOfOneChoice(form, list_supervisors, form.getItems().length-1, true); // start index is the total number of projects
+  pagesTwo = buildQuestionsOfOneChoice(form, list_supervisors, true); // start index is the total number of projects
 
   var sectionProjectThree = form.addPageBreakItem().setTitle("Your 3rd choice");
   form.moveItem(sectionProjectThree.getIndex(), form.getItems().length-1);
   pagesTwo.map(function(page){ page.setGoToPage(sectionProjectThree); });
 
-  pagesThree = buildQuestionsOfOneChoice(form, list_supervisors, form.getItems().length-1, true);
+  pagesThree = buildQuestionsOfOneChoice(form, list_supervisors, true);
 
   var sectionProjectFour = form.addPageBreakItem().setTitle("Your 4th choice");
   form.moveItem(sectionProjectFour.getIndex(), form.getItems().length-1);
   pagesThree.map(function(page){ page.setGoToPage(sectionProjectFour); });
 
-  pagesFour = buildQuestionsOfOneChoice(form, list_supervisors, form.getItems().length-1, false);
+  pagesFour = buildQuestionsOfOneChoice(form, list_supervisors, false);
 
   var sectionProjectFive = form.addPageBreakItem().setTitle("Your 5th choice");
   form.moveItem(sectionProjectFive.getIndex(), form.getItems().length-1);
   pagesFour.map(function(page){ page.setGoToPage(sectionProjectFive); });
 
-  pagesFive = buildQuestionsOfOneChoice(form, list_supervisors, form.getItems().length-1, false);
+  pagesFive = buildQuestionsOfOneChoice(form, list_supervisors, false);
   
   //Submit form after that (for both bachelor and master)
   pagesFive.map(function(page){ page.setGoToPage(FormApp.PageNavigationType.SUBMIT); });
 }
 
-function buildQuestionsOfOneChoice(form, list_supervisors, index, isRequired) 
+function buildQuestionsOfOneChoice(form, list_supervisors, isRequired) 
 {
   // Add 1st question: selecting supervisor
   var supervisorSelection = form.addMultipleChoiceItem();
@@ -120,12 +120,13 @@ function buildQuestionsOfOneChoice(form, list_supervisors, index, isRequired)
       indexMoveItem ++; // Update the index for moving item
 
       var projectQuestion = form.addMultipleChoiceItem().setTitle('Please select a project:').setRequired(true);
-      
-      var projects = sup.projects;
-      var projectTitles = projects.map(function(project)
-      {
-        return project.title.toString();
-      });
+    
+      var projectTitles = (sup.projects).map(
+        function(project)
+        {
+          return project.title.toString();
+        }
+      );
 
       projectQuestion.setChoiceValues(projectTitles);
 
@@ -172,6 +173,8 @@ function dataProcessing(csv_content)
       let numOtherProjects = 0;
 
       var supervisor;
+      var supervisorBachelor;
+      var supervisorMaster;
 
       const masterProjects = [];
       const bachelorProjects = [];
@@ -215,6 +218,12 @@ function dataProcessing(csv_content)
 
       supervisor = new SupervisorProjectBased(email, name, isChair, numProjects, courses, 
       bachelorProjects.length, masterProjects.length, undefinedProjects.length, projects);
+
+      supervisorBachelor = new SupervisorProjectBased(email, name, isChair, numProjects - masterProjects.length, courses, 
+      bachelorProjects.length, 0, undefinedProjects.length, bachelorProjects.concat(undefinedProjects));
+
+      supervisorMaster = new SupervisorProjectBased(email, name, isChair, numProjects - bachelorProjects.length, courses, 
+      0, masterProjects.length, undefinedProjects.length, masterProjects.concat(undefinedProjects));
     } 
     else 
     {
@@ -225,16 +234,22 @@ function dataProcessing(csv_content)
 
       supervisor = new SupervisorGroupBased(email, name, isChair, numProjects, courses,
       numBachelorProjects, numMasterProjects, numUndefinedProjects);
+
+      supervisorBachelor = new SupervisorGroupBased(email, name, isChair, numProjects - numMasterProjects, courses,
+      numBachelorProjects, 0, numUndefinedProjects);
+
+      supervisorMaster = new SupervisorGroupBased(email, name, isChair, numProjects - numBachelorProjects, courses, 
+      0, numMasterProjects, numUndefinedProjects);
     }
 
     if ((supervisor.num_bachelor_projects + supervisor.num_undefined_projects) !== 0) 
     {
-      listSupervisorsBachelor.push(supervisor);
+      listSupervisorsBachelor.push(supervisorBachelor);
     }
 
     if ((supervisor.num_master_projects + supervisor.num_undefined_projects) !== 0) 
     {
-      listSupervisorsMaster.push(supervisor);
+      listSupervisorsMaster.push(supervisorMaster);
     }
   }
   return [listSupervisorsBachelor, listSupervisorsMaster];
