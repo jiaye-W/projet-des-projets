@@ -8,7 +8,7 @@ class Project:
     description: str = ''
     target_students: str = '' # bachelor, master, or undefined
 
-@dataclass(frozen=True)
+@dataclass
 class Supervisor:
     index: int
     email: str
@@ -18,14 +18,14 @@ class Supervisor:
     num_projects: int
     courses: list[int] # required courses, <= 3
 
-@dataclass(frozen=True)
+@dataclass
 class SupervisorProjectBased(Supervisor):
     num_bachelor_projects: int
     num_master_projects: int
     num_undefined_projects: int
     projects: list[Project]
 
-@dataclass(frozen=True)
+@dataclass
 class SupervisorGroupBased(Supervisor):
     num_bachelor_projects: int
     num_master_projects: int
@@ -39,5 +39,5 @@ class Student:
     name: str # full name
     sciper: int # 6-digit number
 
-    preferences: dict[int, (Supervisor, str)] # sorted based on preferences
-    # grades: dict[int, int] # key: course number (xxx) value: grade (int)
+    preferences: list[(int, str)] # sorted based on preferences
+    grades: list[int] # key: Supervisor, value: list of grades (can be empty)
