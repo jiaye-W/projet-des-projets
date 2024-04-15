@@ -76,7 +76,7 @@ def build_supervisors():
     list_supervisors_master = []
     list_supervisors_bachelor = []
 
-    for index, row in df.iterrows():
+    for index, row in df.iterrows(): # Index: unique label of supervisor
         # Email
         email = row.iloc[1]
 
@@ -134,7 +134,7 @@ def build_supervisors():
             projects = bachelor_projects + master_projects + undefined_projects
             num_projects = len(projects)
 
-            supervisor = SupervisorProjectBased(email, name, is_chair, tracks, num_projects, courses, 
+            supervisor = SupervisorProjectBased(index, email, name, is_chair, tracks, num_projects, courses, 
                                                 len(bachelor_projects), len(master_projects), len(undefined_projects), projects)
 
         else:
@@ -143,13 +143,13 @@ def build_supervisors():
             num_master_projects = int(row.iloc[41 + num_projects - num_bachelor_projects])
             num_undefined_projects = num_projects - num_bachelor_projects - num_master_projects
 
-            supervisor = SupervisorGroupBased(email, name, is_chair, tracks, num_projects, courses, 
+            supervisor = SupervisorGroupBased(index, email, name, is_chair, tracks, num_projects, courses, 
                                               num_bachelor_projects, num_master_projects, num_undefined_projects)
 
         list_supervisors.append(supervisor)
-        if ((num_bachelor_projects + num_undefined_projects) != 0):
+        if ((supervisor.num_bachelor_projects + supervisor.num_undefined_projects) != 0):
             list_supervisors_bachelor.append(supervisor)
-        if ((num_master_projects + num_undefined_projects) != 0):
+        if ((supervisor.num_master_projects + supervisor.num_undefined_projects) != 0):
             list_supervisors_master.append(supervisor)
 
     # Sort the supervisors: first project-based then group-based
@@ -204,8 +204,19 @@ def results_writefile(list_supervisors, students):
 
             file.write('-' * 100 + '\n')
 
+def convert_list_to_dict(list_supervisors):
+    dict_supervisors = {}
+    for sup in list_supervisors:
+        name = sup.name
+        dict_supervisors[name] = sup
+    return dict_supervisors
+
 if __name__ == "__main__":
     list_supervisors_bachelor, list_supervisors_master = build_supervisors()
 
     results_writefile(list_supervisors=list_supervisors_bachelor, students='bachelor')
     results_writefile(list_supervisors=list_supervisors_master, students='master')
+
+list_supervisors_bachelor, list_supervisors_master = build_supervisors()
+dict_supervisors_bachelor = convert_list_to_dict(list_supervisors_bachelor)
+dict_supervisors_master = convert_list_to_dict(list_supervisors_master)
