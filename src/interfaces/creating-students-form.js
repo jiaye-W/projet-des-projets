@@ -24,7 +24,7 @@ function main()
 function buildQuestions(form, list_supervisors)
 {
   // Sort the supervisors, first project-based then group-based
-  list_supervisors.sort((a, b) => sorted_key(a) - sorted_key(b));
+  // list_supervisors.sort((a, b) => sorted_key(a) - sorted_key(b));
 
   // Ask for their names
   var firstNameQuestion = form.addTextItem();
@@ -273,10 +273,10 @@ function deleteEverything()
   }
 }
 
-function sorted_key(sup) 
-{
-  return sup instanceof SupervisorProjectBased ? 0 : 1;
-}
+// function sorted_key(sup) 
+// {
+//   return sup instanceof SupervisorProjectBased ? 0 : 1;
+// }
 
 // Dataclasses
 function Project(title, description, target_students) 
