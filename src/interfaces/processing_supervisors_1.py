@@ -76,6 +76,9 @@ def build_supervisors():
     list_supervisors_master = []
     list_supervisors_bachelor = []
 
+    index_bachelor_supervisor = 0
+    index_master_supervisor = 0
+
     for index, row in df.iterrows(): # Index: unique label of supervisor
         # Email
         email = row.iloc[1]
@@ -94,6 +97,11 @@ def build_supervisors():
         courses = [int(x) for x in courses if not math.isnan(float(x))]
 
         if (row.iloc[6] == "project-based"):
+            # Indices of projects
+            index_bachelor = 0
+            index_master = 0
+            index_undefined = 0
+
             range_num_projects = row.iloc[7]
 
             bachelor_projects = []
@@ -103,15 +111,24 @@ def build_supervisors():
             num_other_projects = 0
             # Add required bachelor project(s)
             if range_num_projects == '1 ~ 4':
-                bachelor_projects.append(Project(title=row.iloc[8], 
+                index_bachelor += 1
+                bachelor_projects.append(Project(
+                                        index=index_bachelor,
+                                        title=row.iloc[8], 
                                         description=row.iloc[9], 
                                         target_students='bachelor'))
                 num_other_projects = row.iloc[10]
             elif range_num_projects == '5 ~ 8':
-                bachelor_projects.append(Project(title=row.iloc[11], 
+                index_bachelor += 1
+                bachelor_projects.append(Project(
+                                        index=index_bachelor,
+                                        title=row.iloc[11], 
                                         description=row.iloc[12], 
                                         target_students='bachelor'))
-                bachelor_projects.append(Project(title=row.iloc[13], 
+                index_bachelor += 1
+                bachelor_projects.append(Project(
+                                        index=index_bachelor,
+                                        title=row.iloc[13], 
                                         description=row.iloc[14], 
                                         target_students='bachelor'))
                 num_other_projects = row.iloc[15]
@@ -125,17 +142,22 @@ def build_supervisors():
                 target_students = row.iloc[start_col + 2]
 
                 if target_students == 'Bachelor':
-                    bachelor_projects.append(Project(title, description, 'bachelor'))
+                    index_bachelor += 1
+                    bachelor_projects.append(Project(index_bachelor, title, description, 'bachelor'))
                 elif target_students == 'Master':
-                    master_projects.append(Project(title, description, 'master'))
+                    index_master += 1
+                    master_projects.append(Project(index_master, title, description, 'master'))
                 else: # undefined projects
-                    undefined_projects.append(Project(title, description, 'undefined'))
+                    index_undefined += 1
+                    undefined_projects.append(Project(index_undefined, title, description, 'undefined'))
             
             projects = bachelor_projects + master_projects + undefined_projects
             num_projects = len(projects)
-
-            supervisor = SupervisorProjectBased(index, email, name, is_chair, tracks, num_projects, courses, 
-                                                len(bachelor_projects), len(master_projects), len(undefined_projects), projects)
+                
+            supervisor_bachelor = SupervisorProjectBased(index, email, name, is_chair, tracks, num_projects - len(master_projects), courses, 
+                                                         len(bachelor_projects), 0, len(undefined_projects), bachelor_projects + undefined_projects)
+            supervisor_master = SupervisorProjectBased(index, email, name, is_chair, tracks, num_projects - len(bachelor_projects), courses, 
+                                                       0, len(master_projects), len(undefined_projects), master_projects + undefined_projects)
 
         else:
             num_projects = int(row.iloc[34])
@@ -143,18 +165,24 @@ def build_supervisors():
             num_master_projects = int(row.iloc[41 + num_projects - num_bachelor_projects])
             num_undefined_projects = num_projects - num_bachelor_projects - num_master_projects
 
-            supervisor = SupervisorGroupBased(index, email, name, is_chair, tracks, num_projects, courses, 
-                                              num_bachelor_projects, num_master_projects, num_undefined_projects)
+            supervisor_bachelor = SupervisorGroupBased(index, email, name, is_chair, tracks, num_projects - num_master_projects, courses, 
+                                                       num_bachelor_projects, 0, num_undefined_projects)
+            supervisor_master = SupervisorGroupBased(index, email, name, is_chair, tracks, num_projects - num_bachelor_projects, courses, 
+                                                     0, num_master_projects, num_undefined_projects)
 
-        list_supervisors.append(supervisor)
-        if ((supervisor.num_bachelor_projects + supervisor.num_undefined_projects) != 0):
-            list_supervisors_bachelor.append(supervisor)
-        if ((supervisor.num_master_projects + supervisor.num_undefined_projects) != 0):
-            list_supervisors_master.append(supervisor)
+        if (supervisor_bachelor.num_projects != 0):
+            supervisor_bachelor.index = index_bachelor_supervisor
+            list_supervisors_bachelor.append(supervisor_bachelor)
+            index_bachelor_supervisor += 1
+
+        if (supervisor_master.num_projects != 0):
+            supervisor_master.index = index_master_supervisor
+            list_supervisors_master.append(supervisor_master)
+            index_master_supervisor += 1
 
     # Sort the supervisors: first project-based then group-based
-    list_supervisors_master = sorted(list_supervisors_master, key=sorted_key)
-    list_supervisors_bachelor = sorted(list_supervisors_bachelor, key=sorted_key)
+    # list_supervisors_master = sorted(list_supervisors_master, key=sorted_key)
+    # list_supervisors_bachelor = sorted(list_supervisors_bachelor, key=sorted_key)
 
     return list_supervisors_bachelor, list_supervisors_master
 
@@ -189,13 +217,11 @@ def results_writefile(list_supervisors, students):
 
             if sup_type == 'project-based':
                 file.write('\n')
-                proj_index = 1
                 for proj in sup.projects:
                     if proj.target_students == students or proj.target_students == 'undefined':
-                        file.write('\t' + f'Project {proj_index} ({proj.target_students})' + '\n')
+                        file.write('\t' + f'Project {proj.index+1} ({proj.target_students})' + '\n')
                         file.write('\t' + f'Title: {proj.title}' + '\n')
                         file.write('\t' + f'Description: {proj.description}' + '\n\n')
-                        proj_index += 1
             else:
                 file.write('\n')
 
@@ -207,15 +233,14 @@ def results_writefile(list_supervisors, students):
 def convert_list_to_dict(list_supervisors):
     dict_supervisors = {}
     for sup in list_supervisors:
-        name = sup.name
-        dict_supervisors[name] = sup
+        dict_supervisors[sup.name] = sup
     return dict_supervisors
 
-if __name__ == "__main__":
-    list_supervisors_bachelor, list_supervisors_master = build_supervisors()
+# if __name__ == "__main__":
+#     list_supervisors_bachelor, list_supervisors_master = build_supervisors()
 
-    results_writefile(list_supervisors=list_supervisors_bachelor, students='bachelor')
-    results_writefile(list_supervisors=list_supervisors_master, students='master')
+#     results_writefile(list_supervisors=list_supervisors_bachelor, students='bachelor')
+#     results_writefile(list_supervisors=list_supervisors_master, students='master')
 
 list_supervisors_bachelor, list_supervisors_master = build_supervisors()
 dict_supervisors_bachelor = convert_list_to_dict(list_supervisors_bachelor)
