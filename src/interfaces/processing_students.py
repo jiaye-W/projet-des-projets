@@ -109,7 +109,7 @@ def info_extraction(df, list_supervisors, target_students):
     students = [] #TODO What's the best way of storing students?
 
     num_cols = df.shape[1]
-    num_cols_one_choice = int(num_cols/5) -1 # The number of columns of one unit!
+    num_cols_one_choice = int(num_cols/5) - 1 # The number of columns of one unit!
 
     for index, row in df.iterrows():
         email = row.iloc[1]
@@ -139,7 +139,8 @@ def info_extraction(df, list_supervisors, target_students):
                     project = Project(index=-1)
                 preferences.append((supervisor.index, project))
 
-                grades[supervisor_index] = [row.iloc[index_choice + index_course] if index_course!= -1 else -1 for index_course in indices_courses]
+                grades[supervisor_index] = [row.iloc[index_choice + index_course] if index_course!= -1 else -1 
+                                            for index_course in indices_courses]
 
         student = Student(index=index+1, email=email, degree=target_students, name=name, sciper=sciper, 
                           preferences=preferences, grades=grades)
@@ -162,4 +163,4 @@ if __name__ == "__main__":
     # print(get_info_columns(list_supervisors_bachelor))
     # print(get_info_columns(list_supervisors_master))
 
-    
+    #TODO: 

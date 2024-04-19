@@ -8,9 +8,15 @@ def automated_emails():
     return 0
 
 def repetition_courses(): # check if the required courses are repeated
+    
     return 0
 
 def check_submission(): # check if someone has submitted or not
+    """Need a list of supervisors who are supposed to submit the form.
+
+    Returns:
+        _type_: _description_
+    """
     return 0
 
 #TODO: separate these dataclasses into a new file and try to use them elsewhere (e.g., in the script processing-students.py)
