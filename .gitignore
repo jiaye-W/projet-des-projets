@@ -13,9 +13,6 @@ results/
 
 temp-reqs.txt
 
-test-collected-data/data/student.csv
-test-collected-data/data/students.csv
-test-collected-data/data/supervisor-1.csv
-test-collected-data/data/supervisor-2.csv
+test-collected-data/data
 
 downloaded_file.csv
