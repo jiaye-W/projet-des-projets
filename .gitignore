@@ -12,6 +12,10 @@ pub?output=csv
 results/
 
 temp-reqs.txt
-references/FSW23.pdf
 
-test-collected-data/data
+test-collected-data/data/student.csv
+test-collected-data/data/students.csv
+test-collected-data/data/supervisor-1.csv
+test-collected-data/data/supervisor-2.csv
+
+downloaded_file.csv
