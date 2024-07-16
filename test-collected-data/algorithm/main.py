@@ -16,12 +16,6 @@ def print_dict_items(dictionary):
     for key, value in dictionary.items():
         print(f"{key}: {value}")
 
-# print(student_preferences)
-# print(supervisor_preferences)
-# print(project_supervisors)
-# print(project_capacities)
-# print(supervisor_capacities)
-
 game = StudentAllocation.create_from_dictionaries(
     student_preferences,
     supervisor_preferences,
@@ -37,3 +31,25 @@ print(matching)
 # the size of matching
 matching_size = sum(1 for value in matching.values() if value)
 print(f"The size of the matching = {matching_size}")
+
+
+# Function to write dictionaries to a file
+def write_dictionaries_to_file(filename, dictionaries):
+    with open(filename, 'w') as file:
+        for dict_name, dictionary in dictionaries.items():
+            file.write(f"{dict_name}:\n")
+            for key, value in dictionary.items():
+                file.write(f"{key}: {value}\n")
+            file.write("\n")  # Add a newline to separate dictionaries
+
+# Dictionary containing all dictionaries to be written
+all_dictionaries = {
+    "student_preferences": student_preferences,
+    "supervisor_preferences": supervisor_preferences,
+    "project_supervisors": project_supervisors,
+    "project_capacities": project_capacities,
+    "supervisor_capacities": supervisor_capacities
+}
+
+# Writing dictionaries to the file
+write_dictionaries_to_file('dictionaries.txt', all_dictionaries)

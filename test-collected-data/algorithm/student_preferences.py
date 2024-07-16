@@ -14,7 +14,7 @@ def process_list(lst, level):
                 # Manual selections
                 if last_word != 'Patakfalvi' and last_word != 'Aru':
                     processed_list.append(f"Project-{last_word}-{level}")
-                if last_word != 'Eisenbrand' and last_word != 'Michel' and last_word != 'Perraudin':
+                if last_word != 'Eisenbrand' and last_word != 'Michel' and last_word != 'Perraudin' and last_word != 'Monod':
                     processed_list.append(f"Project-{last_word}-undefined")      
     
     return processed_list
