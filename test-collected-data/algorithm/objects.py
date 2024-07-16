@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import pandas as pd
 
 df_supervisor_1 = pd.read_csv('test-collected-data/data/supervisor-1.csv')
-df_student = pd.read_csv('test-collected-data/data/student.csv')
+df_student = pd.read_csv('test-collected-data/data/students.csv')
 df_supervisor_2 = pd.read_csv('test-collected-data/data/supervisor-2.csv')
 
 @dataclass

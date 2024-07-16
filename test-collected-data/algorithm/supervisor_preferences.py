@@ -48,7 +48,23 @@ supervisor_preferences_group_based = {}
 # Group by Project ID and sort each group by Rank
 for project_id, group in df_supervisor_2_project_based.groupby('Project ID'):
     sorted_group = group.sort_values(by='Rank')
-    supervisor_preferences_project_based[f'Project-{int(project_id)}'] = ["Student-" + str(student_id) for student_id in sorted_group['Student ID']]
+    supervisor_preferences_project_based[f'Supervisor-{int(project_id)}'] = ["Student-" + str(student_id) for student_id in sorted_group['Student ID']]
 
-print(supervisor_preferences_project_based)
-"""Project-Supervisors"""
+# Function to transform "Group Based" to the desired format
+def transform_group_based(group_str):
+    parts = group_str.split(',')
+    group_type = parts[0].split('-')[-1]
+    supervisor = parts[1]
+    degree_type = 'bachelor' if group_type == '0' else 'master' if group_type == '1' else 'undefined'
+    return f'Supervisor-{supervisor}-{degree_type}'
+
+# Apply the transformation function to the 'Group Based' column
+df_supervisor_2_group_based['Group Based'] = df_supervisor_2_group_based['Group Based'].apply(transform_group_based)
+
+# Group by the transformed 'Group Based' and sort each group by 'Rank'
+grouped = df_supervisor_2_group_based.groupby('Group Based').apply(lambda x: x.sort_values(by='Rank')).reset_index(drop=True)
+
+# Create the dictionary with "Student-" prefix
+supervisor_preferences_group_based = grouped.groupby('Group Based')['Student ID'].apply(lambda x: [f'Student-{sid}' for sid in x]).to_dict()
+
+supervisor_preferences = {**supervisor_preferences_project_based, **supervisor_preferences_group_based}
