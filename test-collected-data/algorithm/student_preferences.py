@@ -20,6 +20,28 @@ def process_list(lst, level):
     return processed_list
 
 
+def remove_duplicates(input_dict):
+    # Create a new dictionary to store the result
+    output_dict = {}
+    
+    # Iterate through each key-value pair in the input dictionary
+    for key, value_list in input_dict.items():
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_list = []
+        for item in value_list:
+            if item not in seen:
+                unique_list.append(item)
+                seen.add(item)
+        
+        # Store the unique list in the output dictionary
+        output_dict[key] = unique_list
+    
+    return output_dict
+
+
+
+
 # Convert DataFrame to list of Student instances and create student_preferences dictionary
 students = []
 student_preferences = {}
@@ -77,3 +99,10 @@ for _, row in df_student.iterrows():
 # Display the student_preferences dictionary with each entry on a separate line
 # for ID, preferences in student_preferences.items():
 #     print(f"{ID}: {preferences}")
+
+def remove_empty_lists(input_dict):
+    # Use a dictionary comprehension to filter out empty lists
+    return {k: v for k, v in input_dict.items() if v}
+
+student_preferences = remove_empty_lists(student_preferences)
+student_preferences = remove_duplicates(student_preferences)

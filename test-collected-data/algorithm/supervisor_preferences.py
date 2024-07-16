@@ -68,11 +68,12 @@ grouped = df_supervisor_2_group_based.groupby('Group Based').apply(lambda x: x.s
 supervisor_preferences_group_based = grouped.groupby('Group Based')['Student ID'].apply(lambda x: [f'Student-{sid}' for sid in x]).to_dict()
 
 missing_dict = {
-    "Supervisor-Chizat-bachelor": ["Student-102", "Student-86", "Student-94"],
-    "Supervisor-Chizat-undefined": ["Student-102", "Student-86", "Student-94"],
-    "Supervisor-Perraudin-bachelor": ["Student-85", "Student-29", "Student-81", "Student-76", "Student-105", "Student-111", "Student-125"],
+    "Supervisor-Chizat-bachelor": ["Student-100", "Student-81", "Student-92"],
+    "Supervisor-Chizat-undefined": ["Student-100", "Student-81", "Student-92"],
+    "Supervisor-Perraudin-bachelor": ["Student-81", "Student-76", "Student-105", "Student-111", "Student-125"],
     "Supervisor-Perraudin-master": ["Student-124", "Student-97"],
-    "Supervisor-Favi-master": []
+    "Supervisor-Favi-master": [],
+    "Supervisor-21": ["Student-137"]
 }
 
 supervisor_preferences = {**supervisor_preferences_project_based, **supervisor_preferences_group_based, **missing_dict}

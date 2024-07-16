@@ -38,10 +38,12 @@ for _, row in df_supervisor_1_group_based.iterrows():
         project_capacities[undefined_project] = int(num_undefined_projects)
         supervisor_capacities[f'Supervisor-{name}-undefined'] = int(num_undefined_projects)
 
-
 # Project-based, from supervisor-2.csv
 project_based_projects = df_supervisor_2['Project ID'].dropna().unique()
 project_based_projects = [int(id) for id in project_based_projects]
+
+## Manually fixing
+project_based_projects.append(int(21))
 
 for project in project_based_projects:
     project_supervisors[f'Project-{project}'] = f'Supervisor-{project}'
