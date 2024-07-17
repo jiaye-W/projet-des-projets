@@ -7,7 +7,6 @@ playground/
 __pycache__/
 
 src/interfaces/textual-outputs/
-pub?output=csv
 
 results/
 
@@ -15,8 +14,9 @@ temp-reqs.txt
 
 test-collected-data/data
 
-downloaded_file.csv
-
 results.txt
 error.txt
 solution.txt
+
+export
+export_student
