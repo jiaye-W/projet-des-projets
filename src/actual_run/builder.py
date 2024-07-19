@@ -15,7 +15,33 @@ df_student = download_and_process_csv(url_student)
 # print(df_student)
 
 def build_project_supervisors(df):
-    return 0
+    """_summary_
+
+    Args:
+        df (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+
+    project_supervisors = {}
+    project_capacities = {}
+    supervisor_capacities = {}
+
+    for _, row in df.iterrows():
+        #TODO create Supervisor object
+
+        id = int(row['User ID'])
+        last_name = str(row['User Last Name'])
+        project_based = int(row['Project Based'])
+        lst_projects = []
+
+        if project_based == 1: # project-based
+            project_ids = row['Project ID']
+        else:
+            0
+
+    return project_supervisors, project_capacities, supervisor_capacities
 
 def single_choice(project_id, group_id):
     if not np.isnan(project_id):
@@ -36,33 +62,34 @@ def build_student_preferences(df):
 
     Args:
         df (dataframe): _description_
+
+    Returns:
+        _type_: _description_
     """
     student_preferences = {}
 
     for _, row in df.iterrows():
-        # student = Student(
-        #     ID=row['ID'],
-        #     first_name=row['First Name'],
-        #     last_name=row['Last Name'],
-        #     email=row['Email'],
-        #     sciper=row['Sciper'],
-        #     master=row['Master'],
-            
-        #     first_choice = single_choice(row['First ID'], row['First Group ID']),
-        #     second_choice=single_choice(row['Second ID'], row['Second Group ID']),
-        #     third_choice=single_choice(row['Third ID'], row['Third Group ID']),
-        #     fourth_choice=single_choice(row['Fourth ID'], row['Fourth Group ID']),
-        #     fifth_choice=single_choice(row['Fifth ID'], row['Fifth Group ID'])
-        # )
-
-        print(row['First ID'], row['First Group ID'])
 
         id = row['ID']
-        first_choice = classify_pair(row['First ID'], row['First Group ID'])
+        first_choice=classify_pair(row['First ID'], row['First Group ID'])
         second_choice=classify_pair(row['Second ID'], row['Second Group ID'])
         third_choice=classify_pair(row['Third ID'], row['Third Group ID'])
         fourth_choice=classify_pair(row['Fourth ID'], row['Fourth Group ID'])
         fifth_choice=classify_pair(row['Fifth ID'], row['Fifth Group ID'])
+
+        student = Student(
+            ID=id,
+            first_name=row['First Name'],
+            last_name=row['Last Name'],
+            email=row['Email'],
+            sciper=row['Sciper'],
+            master=row['Master'],
+            first_choice=first_choice,
+            second_choice=second_choice,
+            third_choice=third_choice,
+            fourth_choice=fourth_choice,
+            fifth_choice=fifth_choice
+        )
 
         student_preferences[f"Student-{id}"] = [first_choice, 
                                                 second_choice,
@@ -73,5 +100,6 @@ def build_student_preferences(df):
     return student_preferences
 
 if __name__ == '__main__':
-    print(df_student)
-    print_dict_items(build_student_preferences(df_student))
+    print(df_supervisor_1)
+    # print(df_student)
+    # print_dict_items(build_student_preferences(df_student))
