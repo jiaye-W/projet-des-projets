@@ -5,6 +5,8 @@ from supervisor_preferences import supervisor_preferences
 from matching.algorithms import student_allocation
 from matching.games import StudentAllocation
 
+from objects import project_correspondence_dict
+
 def print_dict_items(dictionary):
     """
     Print each item of the dictionary one per line.
@@ -73,6 +75,13 @@ class CustomDictPrinter(dict):
     def __str__(self):
         return '\n'.join([f'{key}: {value}' for key, value in self.items()])
 
+def transform_key(key):
+    parts = str(key).split('-')
+    if str(key).count('-') == 1:
+        return project_correspondence_dict[int(parts[1])]
+    else:
+        return key
+
 def apply_matching_algorithm(student_preferences,
                              supervisor_preferences,
                              project_supervisors,
@@ -87,13 +96,27 @@ def apply_matching_algorithm(student_preferences,
         supervisor_capacities)
 
     matching = student_allocation(game.students, game.projects, game.supervisors)
+    # print_dict_items(matching)
+
+    matching_modified = {} # We'll use this later!!
+    for key, value in matching.items():
+        if str(key).count('-') == 1:
+            new_key = transform_key(key)
+        else:
+            new_key = key
+        matching_modified[new_key] = value
+
+    # print_dict_items(matching_modified)
 
     """Extract information of the matching results"""
     # Get the number of students being matched
     number_of_students = len(student_preferences.keys())
+    number_of_projects = 0
+    for sup, cap in supervisor_capacities.items():
+        number_of_projects += int(cap)
 
     students_matched = set()
-    for studs in matching.values():
+    for studs in matching_modified.values():
         students_matched.update(studs)
 
     students_unmatched = set(game.students).difference(students_matched)
@@ -104,7 +127,8 @@ def apply_matching_algorithm(student_preferences,
 
     with open('solution.txt', 'w') as file:
     # Redirect the output to the file
-        print(f'There are {len(students_matched)} students got matched, out of {number_of_students}\n', file=file)
+        print(f'There are {len(students_matched)} students got matched, out of {number_of_students}', file=file)
+        print(f'There are {number_of_projects} projects provided by supervisors\n', file=file)
 
         print(f'Unmatched student(s): {", ".join(map(str, students_unmatched))}' if students_unmatched
               else 'Every students are matched!', 
@@ -130,7 +154,7 @@ def apply_matching_algorithm(student_preferences,
             if which_pick == 3:
                 number_of_students_got_third_pick += 1
 
-            print(f'{stud} : {proj}, his/her {which_pick}{get_ordinal_suffix(which_pick)} choice', file=file)
+            print(f'{stud} : {transform_key(proj)}, his/her {which_pick}{get_ordinal_suffix(which_pick)} choice', file=file)
         
         print(f'\nNumber of students got matched = {len(students_matched)} ({round(len(students_matched) * 100 / number_of_students, 2)}%)', file=file)
         print(f'Number of students got matched to their 1st choice = {number_of_students_got_first_pick} ({round(number_of_students_got_first_pick * 100 / number_of_students, 2)}%)', file=file)
@@ -140,8 +164,14 @@ def apply_matching_algorithm(student_preferences,
         file.write('\n' + '-' * 100 + '\n')
 
         print('\nThe project-students correspondence: ', file=file)
-        matching_proj_studs = {proj: studs for proj, studs in matching.items() if studs}
+        matching_proj_studs = {proj: studs for proj, studs in matching_modified.items() if studs}
         print(CustomDictPrinter(matching_proj_studs), file=file)
+
+        file.write('\n' + '-' * 100 + '\n')
+
+        print('\nPopularity stats of each project: number of applicants / number of capacities', file=file)
+        for sup, prefs in supervisor_preferences.items():
+            print(f'{sup}: {len(prefs)} / {int(supervisor_capacities[sup])}', file=file)
 
         file.write('\n' + '-' * 100 + '\n')
 

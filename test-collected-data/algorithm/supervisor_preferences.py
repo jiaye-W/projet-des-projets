@@ -1,5 +1,5 @@
 from objects import Supervisor
-from objects import df_supervisor_2
+from objects import df_supervisor_2, df_student_discarded, project_correspondence_dict
 
 # if df_supervisor_1 is not None:
 #     supervisors = []
@@ -77,3 +77,13 @@ missing_dict = {
 }
 
 supervisor_preferences = {**supervisor_preferences_project_based, **supervisor_preferences_group_based, **missing_dict}
+
+# Function to convert student IDs to names
+def convert_ids_to_names(sup_prefs, df):
+    id_to_name = df.set_index('ID').apply(lambda row: f"{row['First Name']} {row['Last Name']}", axis=1).to_dict()
+    converted_dict = {}
+    for supervisor, students in sup_prefs.items():
+        converted_dict[supervisor] = [id_to_name[int(student.split('-')[1])] for student in students if int(student.split('-')[1]) in id_to_name]
+    return converted_dict
+
+supervisor_preferences = convert_ids_to_names(supervisor_preferences, df_student_discarded)

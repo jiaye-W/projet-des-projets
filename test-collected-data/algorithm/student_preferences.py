@@ -1,5 +1,5 @@
 from objects import Student
-from objects import df_student
+from objects import df_student, df_student_discarded, project_correspondence_dict
 
 def process_list(lst, level):
     processed_list = []
@@ -39,9 +39,6 @@ def remove_duplicates(input_dict):
     
     return output_dict
 
-
-
-
 # Convert DataFrame to list of Student instances and create student_preferences dictionary
 students = []
 student_preferences = {}
@@ -65,7 +62,10 @@ student_preferences = {}
 for _, row in df_student.iterrows():
     student = Student(
         ID=row['user_id'],
-        
+        # email=row['Email'],
+        # first_name=row['First Name'],
+        # last_name=row['Last Name'],
+
         first_choice=row['first_choice'],
         second_choice=row['second_choice'],
         third_choice=row['third_choice'],
@@ -106,3 +106,17 @@ def remove_empty_lists(input_dict):
 
 student_preferences = remove_empty_lists(student_preferences)
 student_preferences = remove_duplicates(student_preferences)
+
+# Function to convert student IDs to names
+def convert_ids_to_names(stud_prefs, df):
+    id_to_name = df.set_index('ID').apply(lambda row: f"{row['First Name']} {row['Last Name']}", axis=1).to_dict()
+    converted_dict = {}
+    for student, projects in stud_prefs.items():
+        converted_dict[id_to_name[int(student.split('-')[1])]] = projects
+    return id_to_name, converted_dict
+
+id_to_name, student_preferences = convert_ids_to_names(student_preferences, df_student_discarded)
+# print(id_to_name)
+# print(student_preferences)
+
+student_preferences['asdf Perraudin'] += ['Project-28', "Project-77", "Project-33"]
