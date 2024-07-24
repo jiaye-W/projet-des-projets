@@ -4,24 +4,16 @@ import math
 from objects import Student
 from helper import print_dict_items, download_and_process_csv
 
-# URLs
-url_supervisor_1 = 'https://sma-semester-projects.epfl.ch/export'
-url_student = 'https://sma-semester-projects.epfl.ch/export_student'
-url_supervisor_2 = 'https://sma-semester-projects.epfl.ch/export_results'
-
-df_supervisor_1 = download_and_process_csv(url_supervisor_1)
-df_student = download_and_process_csv(url_student)
-
-# print(df_student)
-
 def build_project_supervisors(df):
-    """_summary_
+    """Build up the three required dicts for matching
 
     Args:
-        df (_type_): _description_
+        df (dataframe): data collected from the 1st supervisor form, df_supervisor_1
 
     Returns:
-        _type_: _description_
+        project_supervisors (dict)
+        project_capacities (dict)
+        supervisor_capacities (dict)
     """
 
     project_supervisors = {}
@@ -38,16 +30,16 @@ def build_project_supervisors(df):
 
         if project_based == 1: # project-based
             project_ids = row['Project ID']
-        else:
+        else: # group-based
             0
 
     return project_supervisors, project_capacities, supervisor_capacities
 
-def single_choice(project_id, group_id):
-    if not np.isnan(project_id):
-        return f"Project-based-{int(project_id)}"
-    else:
-        return f"Group-based-{int(group_id)}"
+# def single_choice(project_id, group_id):
+#     if not np.isnan(project_id):
+#         return f"Project-based-{int(project_id)}"
+#     else:
+#         return f"Group-based-{int(group_id)}"
     
 def classify_pair(first, second):
     if not math.isnan(first):
@@ -100,6 +92,14 @@ def build_student_preferences(df):
     return student_preferences
 
 if __name__ == '__main__':
+    # URLs (Need EPFL VPN to download!)
+    url_supervisor_1 = 'https://sma-semester-projects.epfl.ch/export'
+    url_student = 'https://sma-semester-projects.epfl.ch/export_student'
+    url_supervisor_2 = 'https://sma-semester-projects.epfl.ch/export_results'
+
+    df_supervisor_1 = download_and_process_csv(url_supervisor_1)
+    df_student = download_and_process_csv(url_student)
+    
     print(df_supervisor_1)
     # print(df_student)
     # print_dict_items(build_student_preferences(df_student))
