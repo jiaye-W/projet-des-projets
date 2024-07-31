@@ -53,9 +53,13 @@ def build_project_supervisors(df):
         df (dataframe): data collected from the 1st supervisor form, df_supervisor_1
 
     Returns:
-        project_supervisors (dict)
-        project_capacities (dict)
-        supervisor_capacities (dict)
+        Required by the matching algorithm:
+            project_supervisors (dict)
+            project_capacities (dict)
+            supervisor_capacities (dict)
+
+        Required to retrieve information:
+            TBD (do it after you have found a stable matching! Then you can retrieve data without worrying about the results.)
     """
 
     project_supervisors = {}
@@ -67,22 +71,45 @@ def build_project_supervisors(df):
 
         id = int(row['User ID'])
         last_name = str(row['User Last Name'])
-
         project_based = int(row['Project Based'])
 
-        if project_based == 1: # project-based
+        # Project-based
+        if project_based == 1: 
             project_ids = processing_project_ids(row['Project Ids'])
-            # split 
-            print(project_ids)
 
-        else: # group-based
-            # if not pd.isna(row['Group Id Bachelor']):
-            #     result.append(f"Group-based-bachelor-{int(row['Group Id Bachelor'])}")
-            # if not pd.isna(row['Group Id Master']):
-            #     result.append(f"Group-based-master-{int(row['Group Id Master'])}")
-            # if not pd.isna(row['Group Id Undefined']):
-            #     result.append(f"Group-based-undefined-{int(row['Group Id Undefined'])}")
-            0
+            # Add "Project-" in front of each project ID
+            projects = [f"Project-{num}" for num in project_ids]
+
+            for proj in projects:
+                project_supervisors[proj] = f"Supervisor-{proj}"
+                project_capacities[proj] = 1
+                supervisor_capacities[f"Supervisor-{proj}"] = 1
+        
+        # Group-based
+        else: 
+            if not pd.isna(row['Group Id Bachelor']):
+                bachelor_project = f"Group-{int(row['Group Id Bachelor'])}"
+                bachelor_capacity = int(row['Number Bachelor'])
+
+                project_supervisors[bachelor_project] = f"Supervisor-{bachelor_project}"
+                project_capacities[bachelor_project] = bachelor_capacity
+                supervisor_capacities[f"Supervisor-{bachelor_project}"] = bachelor_capacity
+
+            if not pd.isna(row['Group Id Master']):
+                master_project = f"Group-{int(row['Group Id Master'])}"
+                master_capacity = int(row['Number Master'])
+
+                project_supervisors[master_project] = f"Supervisor-{master_project}"
+                project_capacities[master_project] = master_capacity
+                supervisor_capacities[f"Supervisor-{master_project}"] = master_capacity
+
+            if not pd.isna(row['Group Id Undefined']):
+                undefined_project = f"Group-{int(row['Group Id Undefined'])}"
+                undefined_capacity = int(row['Number Undefined'])
+
+                project_supervisors[undefined_project] = f"Supervisor-{undefined_project}"
+                project_capacities[undefined_project] = undefined_capacity
+                supervisor_capacities[f"Supervisor-{undefined_project}"] = undefined_capacity
 
     return project_supervisors, project_capacities, supervisor_capacities
 
@@ -153,5 +180,22 @@ if __name__ == '__main__':
     
     print(df_supervisor_1)
     # print(df_student)
-    build_project_supervisors(df_supervisor_1)
-    # print_dict_items(build_student_preferences(df_student))
+
+    # Build up dicts and writefile
+    project_supervisors, project_capacities, supervisor_capacities = build_project_supervisors(df_supervisor_1)
+    with open('src/actual_run/results/algo_inputs.txt', 'w') as file:
+        file.write('-' * 100 + '\n')
+        file.write("Project-Supervisors\n\n")
+        for key, value in project_supervisors.items():
+            file.write(f"{key}: {value}\n")
+        
+        file.write('\n' + '-' * 100 + '\n')
+        file.write("Project-Capacities\n\n")
+        for key, value in project_capacities.items():
+            file.write(f"{key}: {value}\n")
+
+        file.write('\n' + '-' * 100 + '\n')
+        file.write("Supervisor-Capacities\n\n")
+        for key, value in supervisor_capacities.items():
+            file.write(f"{key}: {value}\n")
+    
