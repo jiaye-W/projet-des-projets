@@ -1,11 +1,53 @@
 import pandas as pd
 import numpy as np
 import math
+from typing import Union, List
 from objects import Student
 from helper import print_dict_items, download_and_process_csv
 
+def processing_project_ids(item: Union[str, int, float]) -> List[int]:
+    """
+    Split the field of project IDs by semicolon and convert each element to an integer.
+
+    Args:
+        item (Union[str, int, float]): A string containing project IDs separated by semicolons,
+                                       or a single float or int.
+
+    Returns:
+        List[int]: A list of project IDs as integers. If there is only one ID, it returns a list
+                   with that single ID as an integer.
+
+    Raises:
+        ValueError: If the input is a float NaN or contains non-integer values in string format.
+    """
+    if isinstance(item, (int, float)):
+        if math.isnan(item):
+            raise ValueError("Input cannot be NaN.")
+        # If item is a float or int, convert to int and return as a single-element list
+        return [int(item)]
+    elif isinstance(item, str):
+        if ';' in item:
+            try:
+                # Split by semicolon and convert each element to an integer
+                return [int(x) for x in item.split(';')]
+            except ValueError:
+                raise ValueError("String contains non-integer values.")
+        else:
+            try:
+                # Convert the single item to an integer and return it as a single-element list
+                return [int(item)]
+            except ValueError:
+                raise ValueError("String contains non-integer value.")
+            
+# Example usage:
+# processing_project_ids("1;2;3") -> [1, 2, 3]
+# processing_project_ids("4") -> [4]
+# processing_project_ids(5) -> [5]
+# processing_project_ids(6.0) -> [6]
+# processing_project_ids(float('nan')) -> Raises ValueError
+
 def build_project_supervisors(df):
-    """Build up the three required dicts for matching
+    """Build up the three required dicts for matching and some other useful info
 
     Args:
         df (dataframe): data collected from the 1st supervisor form, df_supervisor_1
@@ -25,12 +67,21 @@ def build_project_supervisors(df):
 
         id = int(row['User ID'])
         last_name = str(row['User Last Name'])
+
         project_based = int(row['Project Based'])
-        lst_projects = []
 
         if project_based == 1: # project-based
-            project_ids = row['Project ID']
+            project_ids = processing_project_ids(row['Project Ids'])
+            # split 
+            print(project_ids)
+
         else: # group-based
+            # if not pd.isna(row['Group Id Bachelor']):
+            #     result.append(f"Group-based-bachelor-{int(row['Group Id Bachelor'])}")
+            # if not pd.isna(row['Group Id Master']):
+            #     result.append(f"Group-based-master-{int(row['Group Id Master'])}")
+            # if not pd.isna(row['Group Id Undefined']):
+            #     result.append(f"Group-based-undefined-{int(row['Group Id Undefined'])}")
             0
 
     return project_supervisors, project_capacities, supervisor_capacities
@@ -102,4 +153,5 @@ if __name__ == '__main__':
     
     print(df_supervisor_1)
     # print(df_student)
+    build_project_supervisors(df_supervisor_1)
     # print_dict_items(build_student_preferences(df_student))
