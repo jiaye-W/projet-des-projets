@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import math
 from typing import Union, List
-from objects import Student
+from objects import Student, SupervisorBase
 from helper import print_dict_items, download_and_process_csv
 
 def processing_project_ids(item: Union[str, int, float]) -> List[int]:
@@ -46,6 +46,8 @@ def processing_project_ids(item: Union[str, int, float]) -> List[int]:
 # processing_project_ids(6.0) -> [6]
 # processing_project_ids(float('nan')) -> Raises ValueError
 
+
+# Key method of retrieving information from the 1st supervisor form
 def build_project_supervisors(df):
     """Build up the three required dicts for matching and some other useful info
 
@@ -66,24 +68,42 @@ def build_project_supervisors(df):
     project_capacities = {}
     supervisor_capacities = {}
 
+    # the dictionaries used to get information of the matching results
+    real_project_supervisor = {} 
+    project_title = {}
+
     for _, row in df.iterrows():
-        #TODO create Supervisor object
+        # Create the Supervisor object
 
         id = int(row['User ID'])
+        first_name = str(row['User First Name'])
         last_name = str(row['User Last Name'])
+        email = str(row['User Email'])
         project_based = int(row['Project Based'])
+
+        supervisor = SupervisorBase(ID=id,
+                                    user_first_name=first_name,
+                                    user_last_name=last_name,
+                                    user_email=email,
+                                    project_based=project_based)
 
         # Project-based
         if project_based == 1: 
             project_ids = processing_project_ids(row['Project Ids'])
+            titles = row['Project Title']
 
             # Add "Project-" in front of each project ID
             projects = [f"Project-{num}" for num in project_ids]
 
-            for proj in projects:
+            titles = [str(title) for title in titles.split(';')]
+
+            for proj, title in zip(projects, titles):
                 project_supervisors[proj] = f"Supervisor-{proj}"
                 project_capacities[proj] = 1
                 supervisor_capacities[f"Supervisor-{proj}"] = 1
+
+                real_project_supervisor[proj] = supervisor
+                project_title[proj] = title
         
         # Group-based
         else: 
@@ -95,6 +115,8 @@ def build_project_supervisors(df):
                 project_capacities[bachelor_project] = bachelor_capacity
                 supervisor_capacities[f"Supervisor-{bachelor_project}"] = bachelor_capacity
 
+                real_project_supervisor[bachelor_project] = supervisor
+
             if not pd.isna(row['Group Id Master']):
                 master_project = f"Group-{int(row['Group Id Master'])}"
                 master_capacity = int(row['Number Master'])
@@ -102,6 +124,8 @@ def build_project_supervisors(df):
                 project_supervisors[master_project] = f"Supervisor-{master_project}"
                 project_capacities[master_project] = master_capacity
                 supervisor_capacities[f"Supervisor-{master_project}"] = master_capacity
+
+                real_project_supervisor[master_project] = supervisor
 
             if not pd.isna(row['Group Id Undefined']):
                 undefined_project = f"Group-{int(row['Group Id Undefined'])}"
@@ -111,7 +135,9 @@ def build_project_supervisors(df):
                 project_capacities[undefined_project] = undefined_capacity
                 supervisor_capacities[f"Supervisor-{undefined_project}"] = undefined_capacity
 
-    return project_supervisors, project_capacities, supervisor_capacities
+                real_project_supervisor[undefined_project] = supervisor
+
+    return project_supervisors, project_capacities, supervisor_capacities, real_project_supervisor, project_title
 
 # def single_choice(project_id, group_id):
 #     if not np.isnan(project_id):
@@ -169,20 +195,38 @@ def build_student_preferences(df):
         
     return student_preferences
 
+def get_information_from_results(dict):
+    """From the matching results (dict), get the information of 
+    - real project-supervisor
+    - student
+
+    Args:
+        dict (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+
+
+
+    return 0
+
 if __name__ == '__main__':
     # URLs (Need EPFL VPN to download!)
     url_supervisor_1 = 'https://sma-semester-projects.epfl.ch/export'
     url_student = 'https://sma-semester-projects.epfl.ch/export_student'
     url_supervisor_2 = 'https://sma-semester-projects.epfl.ch/export_results'
 
-    df_supervisor_1 = download_and_process_csv(url_supervisor_1)
-    df_student = download_and_process_csv(url_student)
+    # df_supervisor_1 = download_and_process_csv(url_supervisor_1)
+    # df_student = download_and_process_csv(url_student)
+
+    df_supervisor_1 = pd.read_csv('src/actual_run/data/supervisor-1.csv')
     
     print(df_supervisor_1)
     # print(df_student)
 
     # Build up dicts and writefile
-    project_supervisors, project_capacities, supervisor_capacities = build_project_supervisors(df_supervisor_1)
+    project_supervisors, project_capacities, supervisor_capacities, real_project_supervisor, project_title = build_project_supervisors(df_supervisor_1)
     with open('src/actual_run/results/algo_inputs.txt', 'w') as file:
         file.write('-' * 100 + '\n')
         file.write("Project-Supervisors\n\n")
@@ -197,5 +241,13 @@ if __name__ == '__main__':
         file.write('\n' + '-' * 100 + '\n')
         file.write("Supervisor-Capacities\n\n")
         for key, value in supervisor_capacities.items():
+            file.write(f"{key}: {value}\n")
+
+    with open('src/actual_run/results/project_supervisor_correspondence.txt', 'w') as file:
+        for key, value in real_project_supervisor.items():
+            file.write(f"{key}: {value}\n")
+
+    with open('src/actual_run/results/project_title_correspondence.txt', 'w') as file:
+        for key, value in project_title.items():
             file.write(f"{key}: {value}\n")
     
