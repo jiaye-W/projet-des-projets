@@ -70,11 +70,11 @@ class Student:
     sciper: int
     master: int  # 1 for master, 0 for bachelor
 
-    first_choice: str
-    second_choice: str
-    third_choice: str
-    fourth_choice: str
-    fifth_choice: str
+    # first_choice: str
+    # second_choice: str
+    # third_choice: str
+    # fourth_choice: str
+    # fifth_choice: str
 
     # first_project_id: int
     # first_group_id: int
