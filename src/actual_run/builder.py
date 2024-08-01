@@ -116,6 +116,7 @@ def build_project_supervisors(df):
                 supervisor_capacities[f"Supervisor-{bachelor_project}"] = bachelor_capacity
 
                 real_project_supervisor[bachelor_project] = supervisor
+                project_title[bachelor_project] = "project of bachelor level"
 
             if not pd.isna(row['Group Id Master']):
                 master_project = f"Group-{int(row['Group Id Master'])}"
@@ -126,6 +127,7 @@ def build_project_supervisors(df):
                 supervisor_capacities[f"Supervisor-{master_project}"] = master_capacity
 
                 real_project_supervisor[master_project] = supervisor
+                project_title[master_project] = "project of master level"
 
             if not pd.isna(row['Group Id Undefined']):
                 undefined_project = f"Group-{int(row['Group Id Undefined'])}"
@@ -136,6 +138,7 @@ def build_project_supervisors(df):
                 supervisor_capacities[f"Supervisor-{undefined_project}"] = undefined_capacity
 
                 real_project_supervisor[undefined_project] = supervisor
+                project_title[undefined_project] = "project of undefined level"
 
     return project_supervisors, project_capacities, supervisor_capacities, real_project_supervisor, project_title
 
