@@ -42,3 +42,9 @@ def download_and_process_csv(url):
     else:
         print(f"Failed to download the file from {url}")
         return None
+    
+def compute_total_number_of_projects(project_capacities):
+    number_projects = 0
+    for key, value in project_capacities.items():
+        number_projects += value
+    return number_projects

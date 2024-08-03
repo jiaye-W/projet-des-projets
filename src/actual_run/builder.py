@@ -3,7 +3,7 @@ import numpy as np
 import math
 from typing import Union, List
 from objects import Student, SupervisorBase
-from helper import print_dict_items, download_and_process_csv
+from helper import print_dict_items, download_and_process_csv, compute_total_number_of_projects
 
 def processing_project_ids(item: Union[str, int, float]) -> List[int]:
     """
@@ -268,3 +268,7 @@ if __name__ == '__main__':
     with open('src/actual_run/results/students_information.txt', 'w') as file:
         for key, value in student_info.items():
             file.write(f"{key}: {value}\n")
+
+    # Compute the total number of projects
+    number_projects = compute_total_number_of_projects(project_capacities)
+    print(f"There are {number_projects} projects.")
