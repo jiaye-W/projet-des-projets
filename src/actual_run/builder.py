@@ -71,6 +71,7 @@ def build_project_supervisors(df):
     # the dictionaries used to get information of the matching results
     real_project_supervisor = {} 
     project_title = {}
+    project_level = {}
 
     for _, row in df.iterrows():
         # Create the Supervisor object
@@ -91,19 +92,22 @@ def build_project_supervisors(df):
         if project_based == 1: 
             project_ids = processing_project_ids(row['Project Ids'])
             titles = row['Project Title']
+            levels = row['Project Type'] # bachelor, master, undefined
 
             # Add "Project-" in front of each project ID
             projects = [f"Project-{num}" for num in project_ids]
 
             titles = [str(title) for title in titles.split(';')]
+            levels = [str(level) for level in levels.split(';')]
 
-            for proj, title in zip(projects, titles):
+            for proj, title, level in zip(projects, titles, levels):
                 project_supervisors[proj] = f"Supervisor-{proj}"
                 project_capacities[proj] = 1
                 supervisor_capacities[f"Supervisor-{proj}"] = 1
 
                 real_project_supervisor[proj] = supervisor
                 project_title[proj] = title
+                project_level[proj] = level
         
         # Group-based
         else: 
@@ -117,6 +121,7 @@ def build_project_supervisors(df):
 
                 real_project_supervisor[bachelor_project] = supervisor
                 project_title[bachelor_project] = "project of bachelor level"
+                project_level[bachelor_project] = 'bachelor'
 
             if not pd.isna(row['Group Id Master']):
                 master_project = f"Group-{int(row['Group Id Master'])}"
@@ -128,6 +133,7 @@ def build_project_supervisors(df):
 
                 real_project_supervisor[master_project] = supervisor
                 project_title[master_project] = "project of master level"
+                project_level[master_project] = 'master'
 
             if not pd.isna(row['Group Id Undefined']):
                 undefined_project = f"Group-{int(row['Group Id Undefined'])}"
@@ -139,8 +145,9 @@ def build_project_supervisors(df):
 
                 real_project_supervisor[undefined_project] = supervisor
                 project_title[undefined_project] = "project of undefined level"
+                project_level[undefined_project] = 'undefined'
 
-    return project_supervisors, project_capacities, supervisor_capacities, real_project_supervisor, project_title
+    return project_supervisors, project_capacities, supervisor_capacities, real_project_supervisor, project_title, project_level
 
 # def single_choice(project_id, group_id):
 #     if not np.isnan(project_id):
@@ -154,8 +161,11 @@ def classify_pair(first, second):
     elif not math.isnan(second):
         return f"Group-{int(second)}"
     else:
-        return "Both values are nan"
-    
+        return None
+
+def remove_none_elements(input_list):
+    return [element for element in input_list if element is not None]
+
 def build_student_preferences(df):
     """Build the dict student_preferences from the dataframe of df_student
 
@@ -194,12 +204,10 @@ def build_student_preferences(df):
             # fifth_choice=fifth_choice
         )
 
-        student_preferences[f"Student-{id}"] = [first_choice, 
-                                                second_choice,
-                                                third_choice,
-                                                fourth_choice,
-                                                fifth_choice]
-        
+        preferences = [first_choice, second_choice, third_choice, fourth_choice, fifth_choice]
+        preferences = remove_none_elements(preferences)
+
+        student_preferences[f"Student-{id}"] = preferences
         student_info[f"Student-{id}"] = student
         
     return student_preferences, student_info
@@ -234,7 +242,7 @@ if __name__ == '__main__':
     # print(df_student)
 
     # Build up dicts and writefile
-    project_supervisors, project_capacities, supervisor_capacities, real_project_supervisor, project_title = build_project_supervisors(df_supervisor_1)
+    project_supervisors, project_capacities, supervisor_capacities, real_project_supervisor, project_title, project_level = build_project_supervisors(df_supervisor_1)
     student_preferences, student_info = build_student_preferences(df_student)
     with open('src/actual_run/results/algo_inputs.txt', 'w') as file:
         file.write('-' * 100 + '\n')
@@ -263,6 +271,10 @@ if __name__ == '__main__':
 
     with open('src/actual_run/results/project_title_correspondence.txt', 'w') as file:
         for key, value in project_title.items():
+            file.write(f"{key}: {value}\n")
+    
+    with open('src/actual_run/results/project_level_correspondence.txt', 'w') as file:
+        for key, value in project_level.items():
             file.write(f"{key}: {value}\n")
     
     with open('src/actual_run/results/students_information.txt', 'w') as file:
